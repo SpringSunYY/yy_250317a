@@ -37,6 +37,7 @@
         <spring-framework.version>5.3.39</spring-framework.version>
         <lombok.version>1.18.24</lombok.version>
         <mybatis-plus.version>3.5.9</mybatis-plus.version>
+        <hutool.version>5.8.15</hutool.version>
     </properties>
 
     <!-- 依赖声明 -->
@@ -199,6 +200,13 @@
                 <version>${mybatis-plus.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-all</artifactId>
+                <version>${hutool.version}</version>
+            </dependency>
+
+
             <!-- 定时任务-->
             <dependency>
                 <groupId>com.lz</groupId>
@@ -233,11 +241,6 @@
                 <artifactId>order-common</artifactId>
                 <version>${order.version}</version>
             </dependency>
-            <dependency>
-                <groupId>com.lz</groupId>
-                <artifactId>order-test</artifactId>
-                <version>${order.version}</version>
-            </dependency>
 
         </dependencies>
     </dependencyManagement>
@@ -249,7 +252,6 @@
         <module>order-quartz</module>
         <module>order-generator</module>
         <module>order-common</module>
-        <module>order-test</module>
     </modules>
     <packaging>pom</packaging>
 

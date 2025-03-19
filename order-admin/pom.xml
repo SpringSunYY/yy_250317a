@@ -62,8 +62,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.lz</groupId>
-            <artifactId>order-test</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
