@@ -1,10 +1,18 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="唯一标识" prop="id">
+      <el-form-item label="编号" prop="id">
         <el-input
           v-model="queryParams.id"
-          placeholder="请输入唯一标识"
+          placeholder="请输入编号"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="店铺唯一标识" prop="storeId">
+        <el-input
+          v-model="queryParams.storeId"
+          placeholder="请输入店铺唯一标识"
           clearable
           @keyup.enter.native="handleQuery"
         />
@@ -120,44 +128,47 @@
 
     <el-table v-loading="loading" :data="storeInfoList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center"/>
-      <el-table-column label="唯一标识" align="center" v-if="columns[0].visible" prop="id"/>
-      <el-table-column label="店铺名称" :show-overflow-tooltip="true" align="center" v-if="columns[1].visible"
+      <el-table-column label="编号" align="center" v-if="columns[0].visible" prop="id"/>
+      <el-table-column label="店铺唯一标识" :show-overflow-tooltip="true" align="center" v-if="columns[1].visible"
+                       prop="storeId"
+      />
+      <el-table-column label="店铺名称" :show-overflow-tooltip="true" align="center" v-if="columns[2].visible"
                        prop="name"
       />
-      <el-table-column label="亚马逊卖家编号" :show-overflow-tooltip="true" align="center" v-if="columns[2].visible"
+      <el-table-column label="亚马逊卖家编号" :show-overflow-tooltip="true" align="center" v-if="columns[3].visible"
                        prop="sellerId"
       />
-      <el-table-column label="大区" :show-overflow-tooltip="true" align="center" v-if="columns[3].visible"
+      <el-table-column label="大区" :show-overflow-tooltip="true" align="center" v-if="columns[4].visible"
                        prop="region"
       />
-      <el-table-column label="站点ID" :show-overflow-tooltip="true" align="center" v-if="columns[4].visible"
+      <el-table-column label="站点ID" :show-overflow-tooltip="true" align="center" v-if="columns[5].visible"
                        prop="marketplaceId"
       />
-      <el-table-column label="广告授权状态" :show-overflow-tooltip="true" align="center" v-if="columns[5].visible"
+      <el-table-column label="广告授权状态" :show-overflow-tooltip="true" align="center" v-if="columns[6].visible"
                        prop="adStatus"
       />
-      <el-table-column label="店铺状态" align="center" v-if="columns[6].visible" prop="status">
+      <el-table-column label="店铺状态" align="center" v-if="columns[7].visible" prop="status">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.store_status" :value="scope.row.status"/>
         </template>
       </el-table-column>
-      <el-table-column label="创建人" :show-overflow-tooltip="true" align="center" v-if="columns[7].visible"
+      <el-table-column label="创建人" :show-overflow-tooltip="true" align="center" v-if="columns[8].visible"
                        prop="userId"
       />
-      <el-table-column label="创建时间" align="center" v-if="columns[8].visible" prop="createTime" width="180">
+      <el-table-column label="创建时间" align="center" v-if="columns[9].visible" prop="createTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="更新人" :show-overflow-tooltip="true" align="center" v-if="columns[9].visible"
+      <el-table-column label="更新人" :show-overflow-tooltip="true" align="center" v-if="columns[10].visible"
                        prop="updateBy"
       />
-      <el-table-column label="更新时间" align="center" v-if="columns[10].visible" prop="updateTime" width="180">
+      <el-table-column label="更新时间" align="center" v-if="columns[11].visible" prop="updateTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="备注" :show-overflow-tooltip="true" align="center" v-if="columns[11].visible"
+      <el-table-column label="备注" :show-overflow-tooltip="true" align="center" v-if="columns[12].visible"
                        prop="remark"
       />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
@@ -181,7 +192,6 @@
         </template>
       </el-table-column>
     </el-table>
-
     <pagination
       v-show="total>0"
       :total="total"
@@ -193,6 +203,9 @@
     <!-- 添加或修改店铺信息对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+        <el-form-item label="店铺唯一标识" prop="storeId">
+          <el-input v-model="form.storeId" placeholder="请输入店铺唯一标识"/>
+        </el-form-item>
         <el-form-item label="店铺名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入店铺名称"/>
         </el-form-item>
@@ -206,7 +219,7 @@
           <el-input v-model="form.marketplaceId" placeholder="请输入站点ID"/>
         </el-form-item>
         <el-form-item label="广告授权状态" prop="adStatus">
-          <el-input v-model="form.adStatus" type="textarea" placeholder="请输入内容"/>
+          <el-input v-model="form.adStatus" placeholder="请输入内容"/>
         </el-form-item>
         <el-form-item label="店铺状态" prop="status">
           <el-radio-group v-model="form.status">
@@ -240,18 +253,19 @@ export default {
     return {
       //表格展示列
       columns: [
-        { key: 0, label: '唯一标识', visible: false },
-        { key: 1, label: '店铺名称', visible: true },
-        { key: 2, label: '亚马逊卖家编号', visible: true },
-        { key: 3, label: '大区', visible: true },
-        { key: 4, label: '站点ID', visible: true },
-        { key: 5, label: '广告授权状态', visible: true },
-        { key: 6, label: '店铺状态', visible: true },
-        { key: 7, label: '创建人', visible: false },
-        { key: 8, label: '创建时间', visible: true },
-        { key: 9, label: '更新人', visible: false },
-        { key: 10, label: '更新时间', visible: false },
-        { key: 11, label: '备注', visible: false }
+        { key: 0, label: '编号', visible: false },
+        { key: 1, label: '店铺唯一标识', visible: true },
+        { key: 2, label: '店铺名称', visible: true },
+        { key: 3, label: '亚马逊卖家编号', visible: true },
+        { key: 4, label: '大区', visible: true },
+        { key: 5, label: '站点ID', visible: true },
+        { key: 6, label: '广告授权状态', visible: true },
+        { key: 7, label: '店铺状态', visible: true },
+        { key: 8, label: '创建人', visible: false },
+        { key: 9, label: '创建时间', visible: false },
+        { key: 10, label: '更新人', visible: false },
+        { key: 11, label: '更新时间', visible: false },
+        { key: 12, label: '备注', visible: false }
       ],
       // 遮罩层
       loading: true,
@@ -280,18 +294,23 @@ export default {
         pageNum: 1,
         pageSize: 10,
         id: null,
+        storeId: null,
         name: null,
         sellerId: null,
         region: null,
         marketplaceId: null,
         adStatus: null,
         status: null,
+        userId: null,
         createTime: null
       },
       // 表单参数
       form: {},
       // 表单校验
       rules: {
+        storeId: [
+          { required: true, message: '店铺唯一标识不能为空', trigger: 'blur' }
+        ],
         name: [
           { required: true, message: '店铺名称不能为空', trigger: 'blur' }
         ],
@@ -344,6 +363,7 @@ export default {
     reset() {
       this.form = {
         id: null,
+        storeId: null,
         name: null,
         sellerId: null,
         region: null,

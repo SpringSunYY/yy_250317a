@@ -26,9 +26,14 @@ public class StoreInfo implements Serializable
     private static final long serialVersionUID = 1L;
 
     /** 唯一标识 */
-    @Excel(name = "唯一标识")
+    @Excel(name = "编号")
     @TableId(value = "id", type = IdType.ASSIGN_ID)
     private String id;
+
+    /** 店铺唯一标识 */
+    @Excel(name = "店铺唯一标识")
+    private String storeId;
+
 
     /** 店铺名称 */
     @Excel(name = "店铺名称")

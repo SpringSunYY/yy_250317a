@@ -24,6 +24,8 @@ public class StoreInfoVo implements Serializable
     @Excel(name = "唯一标识")
     private String id;
 
+    private String storeId;
+
     /** 店铺名称 */
     @Excel(name = "店铺名称")
     private String name;

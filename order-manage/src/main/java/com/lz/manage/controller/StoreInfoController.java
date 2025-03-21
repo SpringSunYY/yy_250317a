@@ -3,8 +3,11 @@ package com.lz.manage.controller;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.security.access.prepost.PreAuthorize;
+
 import javax.annotation.Resource;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -34,8 +37,7 @@ import com.lz.common.core.page.TableDataInfo;
  */
 @RestController
 @RequestMapping("/manage/storeInfo")
-public class StoreInfoController extends BaseController
-{
+public class StoreInfoController extends BaseController {
     @Resource
     private IStoreInfoService storeInfoService;
 
@@ -44,12 +46,11 @@ public class StoreInfoController extends BaseController
      */
     @PreAuthorize("@ss.hasPermi('manage:storeInfo:list')")
     @GetMapping("/list")
-    public TableDataInfo list(StoreInfoQuery storeInfoQuery)
-    {
+    public TableDataInfo list(StoreInfoQuery storeInfoQuery) {
         StoreInfo storeInfo = StoreInfoQuery.queryToObj(storeInfoQuery);
         startPage();
         List<StoreInfo> list = storeInfoService.selectStoreInfoList(storeInfo);
-        List<StoreInfoVo> listVo= list.stream().map(StoreInfoVo::objToVo).collect(Collectors.toList());
+        List<StoreInfoVo> listVo = list.stream().map(StoreInfoVo::objToVo).collect(Collectors.toList());
         TableDataInfo table = getDataTable(list);
         table.setRows(listVo);
         return table;
@@ -61,8 +62,7 @@ public class StoreInfoController extends BaseController
     @PreAuthorize("@ss.hasPermi('manage:storeInfo:export')")
     @Log(title = "店铺信息", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
-    public void export(HttpServletResponse response, StoreInfoQuery storeInfoQuery)
-    {
+    public void export(HttpServletResponse response, StoreInfoQuery storeInfoQuery) {
         StoreInfo storeInfo = StoreInfoQuery.queryToObj(storeInfoQuery);
         List<StoreInfo> list = storeInfoService.selectStoreInfoList(storeInfo);
         ExcelUtil<StoreInfo> util = new ExcelUtil<StoreInfo>(StoreInfo.class);
@@ -74,8 +74,7 @@ public class StoreInfoController extends BaseController
      */
     @PreAuthorize("@ss.hasPermi('manage:storeInfo:query')")
     @GetMapping(value = "/{id}")
-    public AjaxResult getInfo(@PathVariable("id") String id)
-    {
+    public AjaxResult getInfo(@PathVariable("id") String id) {
         StoreInfo storeInfo = storeInfoService.selectStoreInfoById(id);
         return success(StoreInfoVo.objToVo(storeInfo));
     }
@@ -86,8 +85,7 @@ public class StoreInfoController extends BaseController
     @PreAuthorize("@ss.hasPermi('manage:storeInfo:add')")
     @Log(title = "店铺信息", businessType = BusinessType.INSERT)
     @PostMapping
-    public AjaxResult add(@RequestBody StoreInfoInsert storeInfoInsert)
-    {
+    public AjaxResult add(@RequestBody StoreInfoInsert storeInfoInsert) {
         StoreInfo storeInfo = StoreInfoInsert.insertToObj(storeInfoInsert);
         return toAjax(storeInfoService.insertStoreInfo(storeInfo));
     }
@@ -98,8 +96,7 @@ public class StoreInfoController extends BaseController
     @PreAuthorize("@ss.hasPermi('manage:storeInfo:edit')")
     @Log(title = "店铺信息", businessType = BusinessType.UPDATE)
     @PutMapping
-    public AjaxResult edit(@RequestBody StoreInfoEdit storeInfoEdit)
-    {
+    public AjaxResult edit(@RequestBody StoreInfoEdit storeInfoEdit) {
         StoreInfo storeInfo = StoreInfoEdit.editToObj(storeInfoEdit);
         return toAjax(storeInfoService.updateStoreInfo(storeInfo));
     }
@@ -109,9 +106,8 @@ public class StoreInfoController extends BaseController
      */
     @PreAuthorize("@ss.hasPermi('manage:storeInfo:remove')")
     @Log(title = "店铺信息", businessType = BusinessType.DELETE)
-	@DeleteMapping("/{ids}")
-    public AjaxResult remove(@PathVariable String[] ids)
-    {
+    @DeleteMapping("/{ids}")
+    public AjaxResult remove(@PathVariable String[] ids) {
         return toAjax(storeInfoService.deleteStoreInfoByIds(ids));
     }
 }

@@ -1,42 +1,61 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
-PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lz.manage.mapper.StoreInfoMapper">
-    
+
     <resultMap type="StoreInfo" id="StoreInfoResult">
-        <result property="id"    column="id"    />
-        <result property="name"    column="name"    />
-        <result property="sellerId"    column="seller_id"    />
-        <result property="region"    column="region"    />
-        <result property="marketplaceId"    column="marketplace_id"    />
-        <result property="adStatus"    column="ad_status"    />
-        <result property="status"    column="status"    />
-        <result property="userId"    column="user_id"    />
-        <result property="createTime"    column="create_time"    />
-        <result property="updateBy"    column="update_by"    />
-        <result property="updateTime"    column="update_time"    />
-        <result property="remark"    column="remark"    />
+        <result property="id" column="id"/>
+        <result property="storeId" column="store_id"/>
+        <result property="name" column="name"/>
+        <result property="sellerId" column="seller_id"/>
+        <result property="region" column="region"/>
+        <result property="marketplaceId" column="marketplace_id"/>
+        <result property="adStatus" column="ad_status"/>
+        <result property="status" column="status"/>
+        <result property="userId" column="user_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
     </resultMap>
 
     <sql id="selectStoreInfoVo">
-        select id, name, seller_id, region, marketplace_id, ad_status, status, user_id, create_time, update_by, update_time, remark from tb_store_info
+        select id,
+               store_id,
+               name,
+               seller_id,
+               region,
+               marketplace_id,
+               ad_status,
+               status,
+               user_id,
+               create_time,
+               update_by,
+               update_time,
+               remark
+        from tb_store_info
     </sql>
 
     <select id="selectStoreInfoList" parameterType="StoreInfo" resultMap="StoreInfoResult">
         <include refid="selectStoreInfoVo"/>
-        <where>  
-            <if test="id != null  and id != ''"> and id = #{id}</if>
-            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
-            <if test="sellerId != null  and sellerId != ''"> and seller_id like concat('%', #{sellerId}, '%')</if>
-            <if test="region != null  and region != ''"> and region like concat('%', #{region}, '%')</if>
-            <if test="marketplaceId != null  and marketplaceId != ''"> and marketplace_id like concat('%', #{marketplaceId}, '%')</if>
-            <if test="adStatus != null  and adStatus != ''"> and ad_status like concat('%', #{adStatus}, '%')</if>
-            <if test="status != null  and status != ''"> and status = #{status}</if>
-            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''"> and create_time between #{params.beginCreateTime} and #{params.endCreateTime}</if>
+        <where>
+            <if test="id != null  and id != ''">and id = #{id}</if>
+            <if test="storeId != null  and storeId != ''"> and store_id = #{storeId}</if>
+            <if test="name != null  and name != ''">and name like concat('%', #{name}, '%')</if>
+            <if test="sellerId != null  and sellerId != ''">and seller_id like concat('%', #{sellerId}, '%')</if>
+            <if test="region != null  and region != ''">and region like concat('%', #{region}, '%')</if>
+            <if test="marketplaceId != null  and marketplaceId != ''">and marketplace_id like concat('%',
+                #{marketplaceId}, '%')
+            </if>
+            <if test="adStatus != null  and adStatus != ''">and ad_status like concat('%', #{adStatus}, '%')</if>
+            <if test="status != null  and status != ''">and status = #{status}</if>
+            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''">
+                and create_time between #{params.beginCreateTime} and #{params.endCreateTime}
+            </if>
         </where>
     </select>
-    
+
     <select id="selectStoreInfoById" parameterType="String" resultMap="StoreInfoResult">
         <include refid="selectStoreInfoVo"/>
         where id = #{id}
@@ -46,6 +65,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         insert into tb_store_info
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="id != null">id,</if>
+            <if test="storeId != null and storeId != ''">store_id,</if>
             <if test="name != null and name != ''">name,</if>
             <if test="sellerId != null and sellerId != ''">seller_id,</if>
             <if test="region != null">region,</if>
@@ -57,9 +77,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="updateBy != null">update_by,</if>
             <if test="updateTime != null">update_time,</if>
             <if test="remark != null">remark,</if>
-         </trim>
+        </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">#{id},</if>
+            <if test="storeId != null and storeId != ''">#{storeId},</if>
             <if test="name != null and name != ''">#{name},</if>
             <if test="sellerId != null and sellerId != ''">#{sellerId},</if>
             <if test="region != null">#{region},</if>
@@ -71,12 +92,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="updateBy != null">#{updateBy},</if>
             <if test="updateTime != null">#{updateTime},</if>
             <if test="remark != null">#{remark},</if>
-         </trim>
+        </trim>
     </insert>
 
     <update id="updateStoreInfo" parameterType="StoreInfo">
         update tb_store_info
         <trim prefix="SET" suffixOverrides=",">
+            <if test="storeId != null and storeId != ''">store_id = #{storeId},</if>
             <if test="name != null and name != ''">name = #{name},</if>
             <if test="sellerId != null and sellerId != ''">seller_id = #{sellerId},</if>
             <if test="region != null">region = #{region},</if>
@@ -93,11 +115,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </update>
 
     <delete id="deleteStoreInfoById" parameterType="String">
-        delete from tb_store_info where id = #{id}
+        delete
+        from tb_store_info
+        where id = #{id}
     </delete>
 
     <delete id="deleteStoreInfoByIds" parameterType="String">
-        delete from tb_store_info where id in 
+        delete from tb_store_info where id in
         <foreach item="id" collection="array" open="(" separator="," close=")">
             #{id}
         </foreach>
