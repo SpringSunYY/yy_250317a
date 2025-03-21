@@ -142,6 +142,14 @@ public class CommonTest {
         amazonOrderId string 可选 亚马逊订单ID，amazonOrderId，sellerOrderId至少一个不能为空，二者都填则按amazonOrderId搜索
         sellerOrderId string 可选 卖家订单ID，amazonOrderId，sellerOrderId至少一个不能为空，二者都填则按amazonOrderId搜索
      */
+    /*
+    [root@VM-0-8-opencloudos ~]# curl -X POST -H "Content-Type: application/json" -d '{"amazonOrderId":"114-9000120-2631449","shopId":"284413"}' "https://openapi.sellfox.com/api/order/detailByOrderId.json?access_token=131db684-96a3-4b97-8d7e-85ca281b72c7&sign=6aa53c7542abb24dc44f636ecc04eb6fe64f1f2730af00ecec4ffdc1c55c41c4&nonce=90904&client_id=367971&timestamp=1742566280608"
+        {
+            "code":0,
+            "msg":"",
+            "data":
+                {"shopId":"284413","amaoviderName":null,"agentCat":null,"trackNo":null,"etplaceId":"US","orderType":"StandardOrder","buye:"*****","county":"*****","district":"*****","sta[{"orderItemId":"123880799672761","commoditySku":Modes, 40-Minute Runtime & Detachable Battery, LitityShipped":"0","quantityUnfulfillable":null,"rerl":"https://m.media-amazon.com/images/I/418dJOF+":"-2.82","headTripShare":"false","fbmShipCost":"9.99","itemTaxAmount":"0.0","promotionIds":"","fbnt":"0.0","giftWrapTaxAmount":"0.0","shippingTaxAnt":"0.0"}],"productAmount":"69.99","productAmoununt":"0.0","purchaseCost":"-31.9","headTripCost":"isReturnOrder":"0","refundDate":null,"purchaseDassOrder":"0","replacedOrderId":null,"fbmCostOrigimentComment":null,"receivedDate":null,"shippingChle":"49.94","withheldTaxAmount":"0.0","giftWrapAmt":"0.0","promotionFlag":"false","taxNumber":nullsExpire":"false","orderFlag":"0","numberOfItemsUn
+     */
     @Test
     public void testGetOrderDetail() throws Exception {
         // 基础参数
@@ -165,8 +173,8 @@ public class CommonTest {
 
         // 构建请求体（JSON格式）
         Map<String, Object> bodyParams = new HashMap<>();
-        bodyParams.put("shopId", "123");
-        bodyParams.put("amazonOrderId", "111-3433490-9681013");
+        bodyParams.put("shopId", "284413");
+        bodyParams.put("amazonOrderId", "114-9000120-2631449");
         // bodyParams.put("sellerOrderId", "备用订单ID"); // 与amazonOrderId二选一
 
         HashMap<String, String> headers = new HashMap<>();

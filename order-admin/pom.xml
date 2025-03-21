@@ -72,6 +72,10 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>com.lz</groupId>
+            <artifactId>order-manage</artifactId>
+        </dependency>
 
     </dependencies>
 
