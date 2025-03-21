@@ -155,4 +155,9 @@ public class StoreInfoServiceImpl extends ServiceImpl<StoreInfoMapper, StoreInfo
         return storeInfoList.stream().map(StoreInfoVo::objToVo).collect(Collectors.toList());
     }
 
+    @Override
+    public int syncStoreInfo(StoreInfo storeInfo) {
+        return 0;
+    }
+
 }

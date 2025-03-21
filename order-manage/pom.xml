@@ -23,6 +23,10 @@
             <artifactId>order-common</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.lz</groupId>
+            <artifactId>order-system</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

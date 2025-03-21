@@ -79,4 +79,6 @@ public interface IStoreInfoService extends IService<StoreInfo>
      * @return StoreInfoVO集合
      */
     List<StoreInfoVo> convertVoList(List<StoreInfo> storeInfoList);
+
+    int syncStoreInfo(StoreInfo storeInfo);
 }

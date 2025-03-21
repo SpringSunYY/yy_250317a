@@ -90,6 +90,14 @@ public class StoreInfoController extends BaseController {
         return toAjax(storeInfoService.insertStoreInfo(storeInfo));
     }
 
+    @PreAuthorize("@ss.hasPermi('manage:storeInfo:add')")
+    @Log(title = "同步店铺信息", businessType = BusinessType.INSERT)
+    @PostMapping("/sync")
+    public AjaxResult sync(@RequestBody StoreInfoInsert storeInfoInsert) {
+        StoreInfo storeInfo = StoreInfoInsert.insertToObj(storeInfoInsert);
+        return toAjax(storeInfoService.syncStoreInfo(storeInfo));
+    }
+
     /**
      * 修改店铺信息
      */
