@@ -9,7 +9,7 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="店铺唯一标识" prop="storeId">
+      <el-form-item label="唯一标识" prop="storeId">
         <el-input
           v-model="queryParams.storeId"
           placeholder="请输入店铺唯一标识"

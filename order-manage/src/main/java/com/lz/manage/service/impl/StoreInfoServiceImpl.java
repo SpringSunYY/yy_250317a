@@ -1,10 +1,12 @@
 package com.lz.manage.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lz.common.utils.DateUtils;
 import com.lz.common.utils.SecurityUtils;
 import com.lz.common.utils.StringUtils;
+import com.lz.common.utils.uuid.IdUtils;
 import com.lz.manage.mapper.StoreInfoMapper;
 import com.lz.manage.model.domain.StoreInfo;
 import com.lz.manage.model.dto.storeInfo.StoreInfoQuery;
@@ -59,6 +61,11 @@ public class StoreInfoServiceImpl extends ServiceImpl<StoreInfoMapper, StoreInfo
      */
     @Override
     public int insertStoreInfo(StoreInfo storeInfo) {
+        StoreInfo old = this.getOne(new LambdaQueryWrapper<StoreInfo>().eq(StoreInfo::getStoreId, storeInfo.getStoreId()));
+        if (StringUtils.isNotNull(old)) {
+            throw new RuntimeException("店铺信息已存在");
+        }
+        storeInfo.setId(IdUtils.snowflakeId().toString());
         storeInfo.setUserId(SecurityUtils.getUserId());
         storeInfo.setCreateTime(DateUtils.getNowDate());
         return storeInfoMapper.insertStoreInfo(storeInfo);
@@ -72,6 +79,11 @@ public class StoreInfoServiceImpl extends ServiceImpl<StoreInfoMapper, StoreInfo
      */
     @Override
     public int updateStoreInfo(StoreInfo storeInfo) {
+        StoreInfo old = this.getOne(new LambdaQueryWrapper<StoreInfo>().eq(StoreInfo::getStoreId, storeInfo.getStoreId()));
+        StoreInfo myOld = this.getById(storeInfo.getId());
+        if (StringUtils.isNotNull(old) && !old.getId().equals(myOld.getId())) {
+            throw new RuntimeException("店铺信息已存在");
+        }
         storeInfo.setUpdateBy(SecurityUtils.getUsername());
         storeInfo.setUpdateTime(DateUtils.getNowDate());
         return storeInfoMapper.updateStoreInfo(storeInfo);
