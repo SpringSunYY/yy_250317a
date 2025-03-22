@@ -55,7 +55,7 @@ public class CommonTest {
         String clientSecret = "df2bac03-1006-4974-89f1-8163162d4910";
         String grantType = "client_credentials";
         String url = StringUtils.format("https://openapi.sellfox.com/api/oauth/v2/token.json?client_id={}&client_secret={}&grant_type={}", clientId, clientSecret, grantType);
-        System.out.println("curl -X GET \"" + url+"\"");
+        System.out.println("curl -X GET \"" + url + "\"");
         //发送请求
         HttpRequest get = HttpUtil.createGet(url);
         String body = get.execute().body();
@@ -116,7 +116,7 @@ public class CommonTest {
         if (response.isOk()) {
             String responseBody = response.body();
             System.out.println(responseBody);
-        }else {
+        } else {
             System.out.println("请求失败，状态码：" + response.getStatus());
             System.out.println("请求失败，响应体：" + response.body());
         }
@@ -201,6 +201,65 @@ public class CommonTest {
             e.printStackTrace();
         }
     }
+
+    /*
+    查看商品详情 POST /api/commodity/getCommodityDetail.json
+        商品列表
+        请求参数
+        Query 参数
+            access_token string 必需 通过获取token接口获得的token，详见 获取 Access Token 默认值: {{access_token}}
+            client_id string 必需 client_id, 获取方式详见 申请API权限 默认值: {{client_id}}
+            timestamp string 必需 13位毫秒时间戳，与当前时间差异不超过正负15分钟，示例：1668153260508 默认值: 121212
+            nonce string 必需 随机整数值，保证每个请求唯一，示例：11251 默认值: 121212
+            sign string 必需 请求签名，详见 生成sign（签名） 默认值: 121212121 Header 参数 Content-Type string
+        固定再header位置加入Content-Type:application/json
+        默认值: application/json
+        Body 参数 application/json
+        id string 商品Id
+     */
+    @Test
+    public void getCommodityDetail() throws Exception {
+        String url = "https://openapi.sellfox.com/api/commodity/getCommodityDetail.json";
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String nonce = String.valueOf(new Random().nextInt(100000));
+        String sign = generateSign("/api/commodity/getCommodityDetail.json", "post", ACCESS_TOKEN, CLIENT_ID, timestamp, nonce, CLIENT_SECRET);
+        Map<String, Object> queryParams = new HashMap<>();
+        queryParams.put("access_token", ACCESS_TOKEN);
+        queryParams.put("client_id", CLIENT_ID);
+        queryParams.put("nonce", nonce);
+        queryParams.put("timestamp", timestamp);
+        queryParams.put("sign", sign);
+
+        //拼接url
+        String fullUrl = HttpUtil.urlWithForm(url, queryParams, null, true);
+        // 构建请求体（JSON格式）
+        Map<String, Object> bodyParams = new HashMap<>();
+        bodyParams.put("id", "123880799672761");
+        HashMap<String, String> headers = new HashMap<>();
+        headers.put("Content-Type", "application/json");
+        try {
+            HttpResponse response = HttpRequest.post(fullUrl)
+                    .header("Content-Type", "application/json")
+                    .body(JSONUtil.toJsonStr(bodyParams))
+                    .timeout(5000)
+                    .execute();
+
+            //打印完整请求
+            String command = generateCurlCommand(url, queryParams, headers, JSONUtil.toJsonStr(bodyParams));
+            System.out.println(command);
+            if (response.isOk()) {
+                String responseBody = response.body();
+                System.out.println("响应成功: " + responseBody);
+            }else{
+                System.err.println("请求失败: HTTP " + response.getStatus());
+                System.err.println("错误信息: " + response.body());
+            }
+        }catch (Exception e) {
+            System.err.println("请求异常: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
 
     private static String generateCurlCommand(String url, Map<String, Object> queryParams, Map<String, String> headers, String body) {
         StringBuilder curlCommand = new StringBuilder("curl -X POST ");

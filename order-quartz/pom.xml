@@ -35,6 +35,11 @@
             <artifactId>order-common</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.lz</groupId>
+            <artifactId>order-manage</artifactId>
+        </dependency>
+
     </dependencies>
 
 </project>

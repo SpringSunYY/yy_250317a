@@ -1,5 +1,6 @@
 package com.lz.manage.model.api;
 
+import com.lz.common.annotation.Excel;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -15,6 +16,7 @@ import java.util.List;
  */
 @Data
 public class OrderInfoResponse implements Serializable {
+    private static final long serialVersionUID = 1L;
     private String code;
     private String msg;
     private String requestId;
@@ -63,7 +65,15 @@ public class OrderInfoResponse implements Serializable {
 
         private List<OrderItemVoList> orderItemVoList;
 
+        /**
+         * 商品id
+         */
         private String orderItemId;
+
+        /**
+         * 亚马逊商品链接
+         */
+        private String goodsLink;
     }
 
     @lombok.Data

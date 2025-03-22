@@ -9,6 +9,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.lz.common.core.redis.RedisCache;
 import com.lz.common.exception.ServiceException;
 import com.lz.common.utils.StringUtils;
+import com.lz.manage.model.api.CommodityDetailResponse;
 import com.lz.manage.model.api.OrderInfoResponse;
 import com.lz.manage.model.api.StoreInfoResponse;
 import com.lz.manage.model.api.TokenResponse;
@@ -131,10 +132,12 @@ public class ApiServiceImpl implements IApiService {
         System.err.println(storeInfoResponse);
         if (storeInfoResponse.getCode().equals("40001") || storeInfoResponse.getMsg().equals("access_token 失效")) {
             getToken();
-            throw new ServiceException("access_token 失效，正在重新获取token,请重新操作");
+            throw new ServiceException("access_token 失效，正在重新获取token,请重新操作", 40001);
         }
         if (!response.isOk()) {
+            log.error("获取店铺信息失败,responseBody:{}", responseBody);
             throw new RuntimeException("获取店铺信息失败");
+
         }
         if (!storeInfoResponse.getCode().equals("0")) {
             throw new RuntimeException("获取店铺信息失败");
@@ -185,10 +188,10 @@ public class ApiServiceImpl implements IApiService {
         // 构建请求体（JSON格式）
         Map<String, Object> bodyParams = new HashMap<>();
         bodyParams.put("shopId", shopId);
-        if (StringUtils.isEmpty(sellerOrderId)) {
+        if (StringUtils.isNotEmpty(sellerOrderId)) {
             bodyParams.put("sellerOrderId", sellerOrderId);
         }
-        if (StringUtils.isEmpty(amazonOrderId)) {
+        if (StringUtils.isNotEmpty(amazonOrderId)) {
             bodyParams.put("amazonOrderId", amazonOrderId);
         }
 
@@ -198,7 +201,7 @@ public class ApiServiceImpl implements IApiService {
         HttpResponse response = HttpRequest.post(fullUrl)
                 .header("Content-Type", "application/json")
                 .body(JSONUtil.toJsonStr(bodyParams))
-                .timeout(5000)
+                .timeout(10000)
                 .execute();
         //打印完整请求
         String command = generateCurlCommand(apiUrl, queryParams, headers, JSONUtil.toJsonStr(bodyParams));
@@ -208,9 +211,10 @@ public class ApiServiceImpl implements IApiService {
         System.out.println("orderInfoResponse = " + orderInfoResponse);
         System.err.println("response = " + response);
         System.out.println(command);
+
         if (orderInfoResponse.getCode().equals("40001") || orderInfoResponse.getMsg().equals("access_token 失效")) {
             getToken();
-            throw new ServiceException("access_token 失效，正在重新获取token,请重新操作");
+            throw new ServiceException("access_token 失效，正在重新获取token,请重新操作", 40001);
         }
         if (!orderInfoResponse.getCode().equals("0")) {
             throw new RuntimeException("获取订单信息失败");
@@ -233,6 +237,89 @@ public class ApiServiceImpl implements IApiService {
             data.setOrderItemId(orderItem.getOrderItemId());
         }
         System.out.println("orderItemVoList = " + orderItemVoList);
+        CommodityDetailResponse.Data commodityDetail = getCommodityDetail(data.getOrderItemId());
+        if (StringUtils.isNotNull(commodityDetail)) {
+            data.setGoodsLink(commodityDetail.getSourceUrls());
+        }
+        return data;
+
+    }
+
+    public CommodityDetailResponse.Data getCommodityDetail(String id) {
+        if (StringUtils.isEmpty(id)) {
+            id = "";
+        }
+        String clientId = configService.selectConfigByKey("clientId");
+        String clientSecret = configService.selectConfigByKey("clientSecret");
+        String apiUrl = configService.selectConfigByKey("getCommodityDetailApi");
+        if (StringUtils.isEmpty(clientId)
+                || StringUtils.isEmpty(clientSecret)
+                || StringUtils.isEmpty(apiUrl)) {
+            throw new RuntimeException("请先配置clientId,clientSecret以及获取订单接口");
+        }
+
+        //获取token
+        String token = redisCache.getCacheObject("token");
+        if (StringUtils.isEmpty(token)) {
+            token = getToken();
+        }
+        String nonce = String.valueOf(new Random().nextInt(100000));
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String sign = null;
+        try {
+            sign = generateSign("/api/commodity/getCommodityDetail.json", "post", token, clientId, timestamp, nonce, clientSecret);
+        } catch (Exception e) {
+            log.error("生成签名失败！！！", e);
+            throw new ServiceException("生成签名失败");
+        }
+
+        Map<String, Object> queryParams = new HashMap<>();
+        queryParams.put("access_token", token);
+        queryParams.put("client_id", clientId);
+        queryParams.put("nonce", nonce);
+        queryParams.put("timestamp", timestamp);
+        queryParams.put("sign", sign);
+
+        String fullUrl = HttpUtil.urlWithForm(apiUrl, queryParams, null, true);
+        // 构建请求体（JSON格式）
+        Map<String, Object> bodyParams = new HashMap<>();
+        bodyParams.put("id", id);
+        HashMap<String, String> headers = new HashMap<>();
+        headers.put("Content-Type", "application/json");
+
+        HttpResponse response = HttpRequest.post(fullUrl)
+                .header("Content-Type", "application/json")
+                .body(JSONUtil.toJsonStr(bodyParams))
+                .timeout(10000)
+                .execute();
+
+        //打印完整请求
+        String command = generateCurlCommand(apiUrl, queryParams, headers, JSONUtil.toJsonStr(bodyParams));
+        String responseBody = response.body();
+        System.err.println("responseBody" + responseBody);
+        CommodityDetailResponse detailResponse = JSONObject.parseObject(responseBody, CommodityDetailResponse.class);
+        System.out.println("detailResponse = " + detailResponse);
+        System.err.println("response = " + response);
+        System.out.println(command);
+
+        if (detailResponse.getCode().equals("40001") || detailResponse.getMsg().equals("access_token 失效")) {
+            getToken();
+            throw new ServiceException("access_token 失效，正在重新获取token,请重新操作", 40001);
+        }
+        if (!detailResponse.getCode().equals("0")) {
+//            throw new RuntimeException("获取商品信息失败");
+            log.error("获取商品信息失败");
+            return new CommodityDetailResponse.Data();
+        }
+        if (!response.isOk()) {
+//            throw new RuntimeException("获取商品信息失败");
+            log.error("获取商品信息失败");
+            return new CommodityDetailResponse.Data();
+        }
+        CommodityDetailResponse.Data data = detailResponse.getData();
+        if (StringUtils.isNull(data)) {
+            return new CommodityDetailResponse.Data();
+        }
         return data;
 
     }
