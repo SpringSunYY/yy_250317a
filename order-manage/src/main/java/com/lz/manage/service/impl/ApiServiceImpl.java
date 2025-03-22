@@ -125,9 +125,6 @@ public class ApiServiceImpl implements IApiService {
         //打印完整请求
         String command = generateCurlCommand(apiUrl, queryParams, headers, body);
         System.out.println(command);
-        if (!response.isOk()) {
-            throw new RuntimeException("获取店铺信息失败");
-        }
         String responseBody = response.body();
         System.err.println(responseBody);
         StoreInfoResponse storeInfoResponse = JSONObject.parseObject(responseBody, StoreInfoResponse.class);
@@ -135,6 +132,9 @@ public class ApiServiceImpl implements IApiService {
         if (storeInfoResponse.getCode().equals("40001") || storeInfoResponse.getMsg().equals("access_token 失效")) {
             getToken();
             throw new ServiceException("access_token 失效，正在重新获取token,请重新操作");
+        }
+        if (!response.isOk()) {
+            throw new RuntimeException("获取店铺信息失败");
         }
         if (!storeInfoResponse.getCode().equals("0")) {
             throw new RuntimeException("获取店铺信息失败");
@@ -166,7 +166,7 @@ public class ApiServiceImpl implements IApiService {
         String sign = null;
         // 生成签名
         try {
-            sign = generateSign("/api/order/detailByOrderId.json", "post", token, clientId, token, nonce, clientSecret);
+            sign = generateSign("/api/order/detailByOrderId.json", "post", token, clientId, timestamp, nonce, clientSecret);
         } catch (Exception e) {
             log.error("生成签名失败！！！", e);
             throw new ServiceException("生成签名失败");
@@ -197,12 +197,12 @@ public class ApiServiceImpl implements IApiService {
                 .execute();
         //打印完整请求
         String command = generateCurlCommand(apiUrl, queryParams, headers, JSONUtil.toJsonStr(bodyParams));
-        System.out.println(command);
-        if (!response.isOk()) {
-            throw new RuntimeException("获取订单信息失败");
-        }
         String responseBody = response.body();
+        System.err.println("responseBody" + responseBody);
         OrderInfoResponse orderInfoResponse = JSONObject.parseObject(responseBody, OrderInfoResponse.class);
+        System.out.println("orderInfoResponse = " + orderInfoResponse);
+        System.err.println("response = " + response);
+        System.out.println(command);
         if (orderInfoResponse.getCode().equals("40001") || orderInfoResponse.getMsg().equals("access_token 失效")) {
             getToken();
             throw new ServiceException("access_token 失效，正在重新获取token,请重新操作");
@@ -210,8 +210,12 @@ public class ApiServiceImpl implements IApiService {
         if (!orderInfoResponse.getCode().equals("0")) {
             throw new RuntimeException("获取订单信息失败");
         }
+        if (!response.isOk()) {
+            throw new RuntimeException("获取订单信息失败");
+        }
 
         OrderInfoResponse.Data data = orderInfoResponse.getData();
+        System.out.println("data = " + data);
         if (StringUtils.isNull(data)) {
             return new OrderInfoResponse.Data();
         }
@@ -221,7 +225,9 @@ public class ApiServiceImpl implements IApiService {
             OrderInfoResponse.OrderItemVoList orderItem = orderItemVoList.get(0);
             data.setAsin(orderItem.getAsin());
             data.setTitle(orderItem.getTitle());
+            data.setOrderItemId(orderItem.getOrderItemId());
         }
+        System.out.println("orderItemVoList = " + orderItemVoList);
         return data;
 
     }

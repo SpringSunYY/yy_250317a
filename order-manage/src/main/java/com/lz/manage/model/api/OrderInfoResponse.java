@@ -57,11 +57,14 @@ public class OrderInfoResponse implements Serializable {
         private String title;
 
         private List<OrderItemVoList> orderItemVoList;
+
+        private String orderItemId;
     }
 
     @lombok.Data
     public static class OrderItemVoList {
         private String title;
         private String asin;
+        private String orderItemId;
     }
 }

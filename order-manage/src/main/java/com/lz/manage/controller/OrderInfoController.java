@@ -3,8 +3,12 @@ package com.lz.manage.controller;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
+
+import com.lz.manage.model.dto.orderInfo.OrderInfoApiQuery;
 import org.springframework.security.access.prepost.PreAuthorize;
 import javax.annotation.Resource;
+
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -53,6 +57,13 @@ public class OrderInfoController extends BaseController
         TableDataInfo table = getDataTable(list);
         table.setRows(listVo);
         return table;
+    }
+
+    @PreAuthorize("@ss.hasPermi('manage:orderInfo:add')")
+    @GetMapping("/getOrderInfoByApi")
+    public AjaxResult getOrderInfoByApi(@Validated OrderInfoApiQuery orderInfoApiQuery)
+    {
+        return success(orderInfoService.getOrderInfoByApi(orderInfoApiQuery));
     }
 
     /**

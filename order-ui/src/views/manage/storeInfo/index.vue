@@ -168,7 +168,7 @@
       />
       <el-table-column label="创建时间" align="center" v-if="columns[9].visible" prop="createTime" width="180">
         <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
+          <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d} {h}:{m}:{s}') }}</span>
         </template>
       </el-table-column>
       <el-table-column label="更新人" :show-overflow-tooltip="true" align="center" v-if="columns[10].visible"
@@ -176,7 +176,7 @@
       />
       <el-table-column label="更新时间" align="center" v-if="columns[11].visible" prop="updateTime" width="180">
         <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
+          <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d} {h}:{m}:{s}') }}</span>
         </template>
       </el-table-column>
       <el-table-column label="备注" :show-overflow-tooltip="true" align="center" v-if="columns[12].visible"

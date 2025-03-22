@@ -29,7 +29,7 @@ public class CommonTest {
 
     private static final String CLIENT_ID = "367971";
     private static final String CLIENT_SECRET = "df2bac03-1006-4974-89f1-8163162d4910";
-    private static final String ACCESS_TOKEN = "131db684-96a3-4b97-8d7e-85ca281b72c7";
+    private static final String ACCESS_TOKEN = "2c08e424-3896-48e2-878d-0be57a050d4a";
 
     @Test
     public void test() {

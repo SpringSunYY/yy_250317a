@@ -9,6 +9,14 @@ export function listOrderInfo(query) {
   })
 }
 
+export function getOrderInfoByApi(query) {
+  return request({
+    url: '/manage/orderInfo/getOrderInfoByApi',
+    method: 'get',
+    params: query
+  })
+}
+
 // 查询订单详细
 export function getOrderInfo(id) {
   return request({

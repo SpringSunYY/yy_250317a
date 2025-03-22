@@ -27,7 +27,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="begEvalueteContent"    column="beg_evaluete_content"    />
         <result property="evaluatePrincipal"    column="evaluate_principal"    />
         <result property="afterSaleSign"    column="after_sale_sign"    />
-        <result property="userId"    column="user_id"    />
+        <result property="userName"    column="user_name"    />
         <result property="createTime"    column="create_time"    />
         <result property="updateBy"    column="update_by"    />
         <result property="updateTime"    column="update_time"    />
@@ -35,7 +35,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectOrderInfoVo">
-        select id, platform, store_id, marketplace_id, amazon_order_id, purchase_date, asin, title, comment, evaluate_time, evaluate_level, evaluate_content, goods_link, scan_time, buyer_name, buyer_email, buyer_level, buyer_evaluate, beg_evaluate_status, beg_evaluete_content, evaluate_principal, after_sale_sign, user_id, create_time, update_by, update_time, remark from tb_order_info
+        select id, platform, store_id, marketplace_id, amazon_order_id, purchase_date, asin, title, comment, evaluate_time, evaluate_level, evaluate_content, goods_link, scan_time, buyer_name, buyer_email, buyer_level, buyer_evaluate, beg_evaluate_status, beg_evaluete_content, evaluate_principal, after_sale_sign, user_name, create_time, update_by, update_time, remark from tb_order_info
     </sql>
 
     <select id="selectOrderInfoList" parameterType="OrderInfo" resultMap="OrderInfoResult">
@@ -90,7 +90,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="begEvalueteContent != null">beg_evaluete_content,</if>
             <if test="evaluatePrincipal != null">evaluate_principal,</if>
             <if test="afterSaleSign != null">after_sale_sign,</if>
-            <if test="userId != null">user_id,</if>
+            <if test="userName != null">user_name,</if>
             <if test="createTime != null">create_time,</if>
             <if test="updateBy != null">update_by,</if>
             <if test="updateTime != null">update_time,</if>
@@ -119,7 +119,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="begEvalueteContent != null">#{begEvalueteContent},</if>
             <if test="evaluatePrincipal != null">#{evaluatePrincipal},</if>
             <if test="afterSaleSign != null">#{afterSaleSign},</if>
-            <if test="userId != null">#{userId},</if>
+            <if test="userName != null">#{userName},</if>
             <if test="createTime != null">#{createTime},</if>
             <if test="updateBy != null">#{updateBy},</if>
             <if test="updateTime != null">#{updateTime},</if>
@@ -151,7 +151,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="begEvalueteContent != null">beg_evaluete_content = #{begEvalueteContent},</if>
             <if test="evaluatePrincipal != null">evaluate_principal = #{evaluatePrincipal},</if>
             <if test="afterSaleSign != null">after_sale_sign = #{afterSaleSign},</if>
-            <if test="userId != null">user_id = #{userId},</if>
+            <if test="userName != null">user_name = #{userName},</if>
             <if test="createTime != null">create_time = #{createTime},</if>
             <if test="updateBy != null">update_by = #{updateBy},</if>
             <if test="updateTime != null">update_time = #{updateTime},</if>
@@ -161,7 +161,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </update>
 
     <delete id="deleteOrderInfoById" parameterType="Long">
-        delete from tb_order_info where id = #{id}
+        delete
+        from tb_order_info
+        where id = #{id}
     </delete>
 
     <delete id="deleteOrderInfoByIds" parameterType="String">
