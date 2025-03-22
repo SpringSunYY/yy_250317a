@@ -22,7 +22,7 @@ public interface IApiService {
      * param:
      * return: void
      **/
-    void getToken();
+    String getToken();
 
     /**
      * description: 获取店铺信息

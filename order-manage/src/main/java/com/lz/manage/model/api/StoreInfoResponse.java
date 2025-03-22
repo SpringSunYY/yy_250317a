@@ -19,5 +19,13 @@ public class StoreInfoResponse implements Serializable {
     private String code;
     private String msg;
     private String requestId;
-    private List<StoreInfoResult> data;
+    private Data data;
+    @lombok.Data
+    public static class Data {
+        private Long pageNo;
+        private Long pageSize;
+        private Long totalPage;
+        private Long totalSize;
+        private List<StoreInfoResult> rows;
+    }
 }

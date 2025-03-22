@@ -90,6 +90,17 @@
       </el-col>
       <el-col :span="1.5">
         <el-button
+          type="primary"
+          plain
+          icon="el-icon-plus"
+          size="mini"
+          @click="handleSync"
+          v-hasPermi="['manage:storeInfo:add']"
+        >同步店铺信息
+        </el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
           type="success"
           plain
           icon="el-icon-edit"
@@ -244,7 +255,14 @@
 </template>
 
 <script>
-import { listStoreInfo, getStoreInfo, delStoreInfo, addStoreInfo, updateStoreInfo } from '@/api/manage/storeInfo'
+import {
+  addStoreInfo,
+  delStoreInfo,
+  getStoreInfo,
+  listStoreInfo,
+  syncStoreInfo,
+  updateStoreInfo
+} from '@/api/manage/storeInfo'
 
 export default {
   name: 'StoreInfo',
@@ -336,6 +354,15 @@ export default {
     this.getList()
   },
   methods: {
+    handleSync() {
+      this.$modal.confirm('是否确认同步店铺信息？').then(function() {
+        return syncStoreInfo()
+      }).then(() => {
+        this.getList()
+        this.$modal.msgSuccess('同步成功')
+      }).catch(() => {
+      })
+    },
     /** 查询店铺信息列表 */
     getList() {
       this.loading = true

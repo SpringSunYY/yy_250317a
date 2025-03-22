@@ -92,9 +92,9 @@ public class StoreInfoController extends BaseController {
 
     @PreAuthorize("@ss.hasPermi('manage:storeInfo:add')")
     @Log(title = "同步店铺信息", businessType = BusinessType.INSERT)
-    @PostMapping("/sync")
-    public AjaxResult sync(@RequestBody StoreInfoInsert storeInfoInsert) {
-        StoreInfo storeInfo = StoreInfoInsert.insertToObj(storeInfoInsert);
+    @GetMapping("/store/sync")
+    public AjaxResult sync() {
+        StoreInfo storeInfo = new StoreInfo();
         return toAjax(storeInfoService.syncStoreInfo(storeInfo));
     }
 

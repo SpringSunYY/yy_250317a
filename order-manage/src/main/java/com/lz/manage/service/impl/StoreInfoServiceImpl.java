@@ -10,9 +10,12 @@ import com.lz.common.utils.uuid.IdUtils;
 import com.lz.manage.mapper.StoreInfoMapper;
 import com.lz.manage.model.domain.StoreInfo;
 import com.lz.manage.model.dto.storeInfo.StoreInfoQuery;
+import com.lz.manage.model.dto.storeInfo.StoreInfoResult;
 import com.lz.manage.model.vo.storeInfo.StoreInfoVo;
+import com.lz.manage.service.IApiService;
 import com.lz.manage.service.IStoreInfoService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -28,6 +31,9 @@ import java.util.stream.Collectors;
 public class StoreInfoServiceImpl extends ServiceImpl<StoreInfoMapper, StoreInfo> implements IStoreInfoService {
     @Resource
     private StoreInfoMapper storeInfoMapper;
+
+    @Resource
+    private IApiService apiService;
 
     //region mybatis代码
 
@@ -61,7 +67,7 @@ public class StoreInfoServiceImpl extends ServiceImpl<StoreInfoMapper, StoreInfo
      */
     @Override
     public int insertStoreInfo(StoreInfo storeInfo) {
-        StoreInfo old = this.getOne(new LambdaQueryWrapper<StoreInfo>().eq(StoreInfo::getStoreId, storeInfo.getStoreId()));
+        StoreInfo old = getStoreInfoByStoreId(storeInfo);
         if (StringUtils.isNotNull(old)) {
             throw new RuntimeException("店铺信息已存在");
         }
@@ -72,6 +78,16 @@ public class StoreInfoServiceImpl extends ServiceImpl<StoreInfoMapper, StoreInfo
     }
 
     /**
+     * 根据店铺id查询店铺信息
+     *
+     * @param storeInfo 店铺信息
+     * @return 店铺信息
+     */
+    private StoreInfo getStoreInfoByStoreId(StoreInfo storeInfo) {
+        return this.getOne(new LambdaQueryWrapper<StoreInfo>().eq(StoreInfo::getStoreId, storeInfo.getStoreId()));
+    }
+
+    /**
      * 修改店铺信息
      *
      * @param storeInfo 店铺信息
@@ -79,7 +95,7 @@ public class StoreInfoServiceImpl extends ServiceImpl<StoreInfoMapper, StoreInfo
      */
     @Override
     public int updateStoreInfo(StoreInfo storeInfo) {
-        StoreInfo old = this.getOne(new LambdaQueryWrapper<StoreInfo>().eq(StoreInfo::getStoreId, storeInfo.getStoreId()));
+        StoreInfo old = getStoreInfoByStoreId(storeInfo);
         StoreInfo myOld = this.getById(storeInfo.getId());
         if (StringUtils.isNotNull(old) && !old.getId().equals(myOld.getId())) {
             throw new RuntimeException("店铺信息已存在");
@@ -155,9 +171,33 @@ public class StoreInfoServiceImpl extends ServiceImpl<StoreInfoMapper, StoreInfo
         return storeInfoList.stream().map(StoreInfoVo::objToVo).collect(Collectors.toList());
     }
 
+    @Transactional
     @Override
     public int syncStoreInfo(StoreInfo storeInfo) {
-        return 0;
+        List<StoreInfoResult> storeInfoList = apiService.getStoreInfo(null, null);
+        System.out.println("storeInfoList = " + storeInfoList);
+        for (StoreInfoResult storeInfoResult : storeInfoList) {
+            System.out.println("storeInfoResult = " + storeInfoResult);
+            //查看数据库是否已经有这个
+            StoreInfo info = new StoreInfo();
+            info.setStoreId(storeInfoResult.getId());
+            StoreInfo store = this.getStoreInfoByStoreId(info);
+            if (StringUtils.isNull(store)) {
+                store = new StoreInfo();
+                store.setId(IdUtils.snowflakeId().toString());
+                store.setUserId(SecurityUtils.getUserId());
+                store.setCreateTime(DateUtils.getNowDate());
+            }
+            store.setStoreId(storeInfoResult.getId());
+            store.setName(storeInfoResult.getName());
+            store.setSellerId(storeInfoResult.getSellerId());
+            store.setRegion(storeInfoResult.getRegion());
+            store.setMarketplaceId(storeInfoResult.getMarketplaceId());
+            store.setAdStatus(storeInfoResult.getAdStatus());
+            store.setStatus(storeInfoResult.getStatus());
+            this.saveOrUpdate(store);
+        }
+        return 1;
     }
 
 }

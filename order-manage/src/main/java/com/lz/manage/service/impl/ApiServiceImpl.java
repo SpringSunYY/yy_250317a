@@ -17,6 +17,7 @@ import com.lz.manage.service.IApiService;
 import com.lz.system.service.ISysConfigService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.crypto.Mac;
@@ -33,6 +34,7 @@ import java.util.stream.Collectors;
  * Description: ApiServiceImpl
  * Version: 1.0
  */
+@Service
 @Slf4j
 public class ApiServiceImpl implements IApiService {
     @Resource
@@ -42,15 +44,15 @@ public class ApiServiceImpl implements IApiService {
     private ISysConfigService configService;
 
     @Override
-    public void getToken() {
+    public String getToken() {
         String clientId = configService.selectConfigByKey("clientId");
         String clientSecret = configService.selectConfigByKey("clientSecret");
         String grantType = configService.selectConfigByKey("grantType");
         String apiUrl = configService.selectConfigByKey("getTokenApi");
-        if (StringUtils.isNotEmpty(clientId)
-                || StringUtils.isNotEmpty(clientSecret)
-                || StringUtils.isNotEmpty(grantType)
-                || StringUtils.isNotEmpty(apiUrl)) {
+        if (StringUtils.isEmpty(clientId)
+                || StringUtils.isEmpty(clientSecret)
+                || StringUtils.isEmpty(grantType)
+                || StringUtils.isEmpty(apiUrl)) {
             throw new RuntimeException("请先配置clientId,clientSecret,grantType,以及获取token接口");
         }
         String url = StringUtils.format(apiUrl, clientId, clientSecret, grantType);
@@ -68,18 +70,23 @@ public class ApiServiceImpl implements IApiService {
         }
         TokenResponse.Data data = tokenResponse.getData();
         redisCache.setCacheObject("token", data.getAccess_token());
+        return data.getAccess_token();
     }
 
     @Override
     public List<StoreInfoResult> getStoreInfo(Long pageNo, Long pageSize) {
         String clientId = configService.selectConfigByKey("clientId");
         String clientSecret = configService.selectConfigByKey("clientSecret");
-        String token = redisCache.getCacheObject("token");
         String apiUrl = configService.selectConfigByKey("getStoreApi");
-        if (StringUtils.isNotEmpty(clientId)
-                || StringUtils.isNotEmpty(clientSecret)
-                || StringUtils.isNotEmpty(apiUrl)) {
+        if (StringUtils.isEmpty(clientId)
+                || StringUtils.isEmpty(clientSecret)
+                || StringUtils.isEmpty(apiUrl)) {
             throw new RuntimeException("请先配置clientId,clientSecret以及获取店铺接口");
+        }
+        //获取token
+        String token = redisCache.getCacheObject("token");
+        if (StringUtils.isEmpty(token)) {
+            token = getToken();
         }
         String timestamp = String.valueOf(System.currentTimeMillis());
         String nonce = String.valueOf(new Random().nextInt(100000));
@@ -110,32 +117,29 @@ public class ApiServiceImpl implements IApiService {
         HashMap<String, String> headers = new HashMap<>();
         headers.put("Content-Type", "application/json");
 
-        try {
-            HttpResponse response = HttpRequest.post(fullUrl)
-                    .headerMap(headers, true)
-                    .body(body)
-                    .timeout(5000)
-                    .execute();
-            //打印完整请求
-            String command = generateCurlCommand(apiUrl, queryParams, headers, body);
-            System.out.println(command);
-            if (!response.isOk()) {
-                throw new RuntimeException("获取店铺信息失败");
-            }
-            String responseBody = response.body();
-            StoreInfoResponse storeInfoResponse = JSONObject.parseObject(responseBody, StoreInfoResponse.class);
-            if (storeInfoResponse.getCode().equals("40001") || storeInfoResponse.getMsg().equals("access_token 失效")) {
-                getToken();
-                throw new ServiceException("access_token 失效，正在重新获取token,请重新操作");
-            }
-            if (!storeInfoResponse.getCode().equals("0")) {
-                throw new RuntimeException("获取店铺信息失败");
-            }
-            return storeInfoResponse.getData();
-        } catch (Exception e) {
-            log.error("获取店铺异常", e);
-            throw new ServiceException("获取店铺异常");
+        HttpResponse response = HttpRequest.post(fullUrl)
+                .headerMap(headers, true)
+                .body(body)
+                .timeout(10000)
+                .execute();
+        //打印完整请求
+        String command = generateCurlCommand(apiUrl, queryParams, headers, body);
+        System.out.println(command);
+        if (!response.isOk()) {
+            throw new RuntimeException("获取店铺信息失败");
         }
+        String responseBody = response.body();
+        System.err.println(responseBody);
+        StoreInfoResponse storeInfoResponse = JSONObject.parseObject(responseBody, StoreInfoResponse.class);
+        System.err.println(storeInfoResponse);
+        if (storeInfoResponse.getCode().equals("40001") || storeInfoResponse.getMsg().equals("access_token 失效")) {
+            getToken();
+            throw new ServiceException("access_token 失效，正在重新获取token,请重新操作");
+        }
+        if (!storeInfoResponse.getCode().equals("0")) {
+            throw new RuntimeException("获取店铺信息失败");
+        }
+        return storeInfoResponse.getData().getRows();
     }
 
     @Override
@@ -145,8 +149,18 @@ public class ApiServiceImpl implements IApiService {
         }
         String clientId = configService.selectConfigByKey("clientId");
         String clientSecret = configService.selectConfigByKey("clientSecret");
-        String token = redisCache.getCacheObject("token");
         String apiUrl = configService.selectConfigByKey("getOrderInfoApi");
+        if (StringUtils.isEmpty(clientId)
+                || StringUtils.isEmpty(clientSecret)
+                || StringUtils.isEmpty(apiUrl)) {
+            throw new RuntimeException("请先配置clientId,clientSecret以及获取订单接口");
+        }
+        //获取token
+        String token = redisCache.getCacheObject("token");
+        if (StringUtils.isEmpty(token)) {
+            token = getToken();
+        }
+
         String nonce = String.valueOf(new Random().nextInt(100000));
         String timestamp = String.valueOf(System.currentTimeMillis());
         String sign = null;
@@ -175,44 +189,41 @@ public class ApiServiceImpl implements IApiService {
 
         HashMap<String, String> headers = new HashMap<>();
         headers.put("Content-Type", "application/json");
-        try {
-            HttpResponse response = HttpRequest.post(fullUrl)
-                    .header("Content-Type", "application/json")
-                    .body(JSONUtil.toJsonStr(bodyParams))
-                    .timeout(5000)
-                    .execute();
-            //打印完整请求
-            String command = generateCurlCommand(apiUrl, queryParams, headers, JSONUtil.toJsonStr(bodyParams));
-            System.out.println(command);
-            if (!response.isOk()) {
-                throw new RuntimeException("获取订单信息失败");
-            }
-            String responseBody = response.body();
-            OrderInfoResponse orderInfoResponse = JSONObject.parseObject(responseBody, OrderInfoResponse.class);
-            if (orderInfoResponse.getCode().equals("40001") || orderInfoResponse.getMsg().equals("access_token 失效")) {
-                getToken();
-                throw new ServiceException("access_token 失效，正在重新获取token,请重新操作");
-            }
-            if (!orderInfoResponse.getCode().equals("0")) {
-                throw new RuntimeException("获取订单信息失败");
-            }
 
-            OrderInfoResponse.Data data = orderInfoResponse.getData();
-            if (StringUtils.isNull(data)) {
-                return new OrderInfoResponse.Data();
-            }
-
-            List<OrderInfoResponse.OrderItemVoList> orderItemVoList = data.getOrderItemVoList();
-            if (StringUtils.isNotEmpty(orderItemVoList)) {
-                OrderInfoResponse.OrderItemVoList orderItem = orderItemVoList.get(0);
-                data.setAsin(orderItem.getAsin());
-                data.setTitle(orderItem.getTitle());
-            }
-            return data;
-        } catch (Exception e) {
-            log.error("获取订单异常", e);
-            throw new ServiceException("获取订单异常");
+        HttpResponse response = HttpRequest.post(fullUrl)
+                .header("Content-Type", "application/json")
+                .body(JSONUtil.toJsonStr(bodyParams))
+                .timeout(5000)
+                .execute();
+        //打印完整请求
+        String command = generateCurlCommand(apiUrl, queryParams, headers, JSONUtil.toJsonStr(bodyParams));
+        System.out.println(command);
+        if (!response.isOk()) {
+            throw new RuntimeException("获取订单信息失败");
         }
+        String responseBody = response.body();
+        OrderInfoResponse orderInfoResponse = JSONObject.parseObject(responseBody, OrderInfoResponse.class);
+        if (orderInfoResponse.getCode().equals("40001") || orderInfoResponse.getMsg().equals("access_token 失效")) {
+            getToken();
+            throw new ServiceException("access_token 失效，正在重新获取token,请重新操作");
+        }
+        if (!orderInfoResponse.getCode().equals("0")) {
+            throw new RuntimeException("获取订单信息失败");
+        }
+
+        OrderInfoResponse.Data data = orderInfoResponse.getData();
+        if (StringUtils.isNull(data)) {
+            return new OrderInfoResponse.Data();
+        }
+
+        List<OrderInfoResponse.OrderItemVoList> orderItemVoList = data.getOrderItemVoList();
+        if (StringUtils.isNotEmpty(orderItemVoList)) {
+            OrderInfoResponse.OrderItemVoList orderItem = orderItemVoList.get(0);
+            data.setAsin(orderItem.getAsin());
+            data.setTitle(orderItem.getTitle());
+        }
+        return data;
+
     }
 
     private String generateCurlCommand(String url, Map<String, Object> queryParams, Map<String, String> headers, String body) {

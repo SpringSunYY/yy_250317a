@@ -26,6 +26,15 @@ export function addStoreInfo(data) {
   })
 }
 
+// 新增订单
+export function syncStoreInfo() {
+  return request({
+    url: '/manage/storeInfo/store/sync',
+    method: 'get',
+    timeout: 1000000
+  })
+}
+
 // 修改店铺信息
 export function updateStoreInfo(data) {
   return request({
