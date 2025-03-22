@@ -1,6 +1,6 @@
 package com.lz.manage.service;
 
-import com.lz.manage.model.api.StoreInfoResponse;
+import com.lz.manage.model.api.OrderInfoResponse;
 import com.lz.manage.model.dto.storeInfo.StoreInfoResult;
 
 import java.util.List;
@@ -33,4 +33,14 @@ public interface IApiService {
      * return: java.util.List<com.lz.manage.model.api.StoreInfoResponse>
      **/
     List<StoreInfoResult> getStoreInfo(Long pageNo, Long pageSize);
+
+    /**
+     * description: 获取订单信息
+     * author: YY
+     * method: getOrderInfo
+     * date: 2025/3/21 23:26
+     * param:
+     * return: com.lz.manage.model.api.OrderInfoResponse
+     **/
+    OrderInfoResponse.Data getOrderInfo(String shopId, String amazonOrderId);
 }

@@ -138,6 +138,7 @@ public class ApiServiceImpl implements IApiService {
         }
     }
 
+    @Override
     public OrderInfoResponse.Data getOrderInfo(String shopId, String amazonOrderId) {
         if (StringUtils.isEmpty(shopId) || StringUtils.isEmpty(amazonOrderId)) {
             throw new RuntimeException("店铺唯一标识,亚马逊订单ID不能为空");
