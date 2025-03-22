@@ -1,6 +1,7 @@
 package com.lz.manage.service;
 
 import com.lz.manage.model.api.StoreInfoResponse;
+import com.lz.manage.model.dto.storeInfo.StoreInfoResult;
 
 import java.util.List;
 
@@ -31,5 +32,5 @@ public interface IApiService {
      * param:
      * return: java.util.List<com.lz.manage.model.api.StoreInfoResponse>
      **/
-    List<StoreInfoResponse> getStoreInfo(Long pageNo, Long pageSize);
+    List<StoreInfoResult> getStoreInfo(Long pageNo, Long pageSize);
 }

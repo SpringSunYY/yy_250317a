@@ -1,5 +1,6 @@
 package com.lz.manage.model.api;
 
+import com.lz.manage.model.dto.storeInfo.StoreInfoResult;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -18,5 +19,5 @@ public class StoreInfoResponse implements Serializable {
     private String code;
     private String msg;
     private String requestId;
-    private List<StoreInfoResponse> data;
+    private List<StoreInfoResult> data;
 }

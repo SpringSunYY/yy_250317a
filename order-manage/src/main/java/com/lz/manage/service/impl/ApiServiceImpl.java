@@ -9,8 +9,10 @@ import com.alibaba.fastjson2.JSONObject;
 import com.lz.common.core.redis.RedisCache;
 import com.lz.common.exception.ServiceException;
 import com.lz.common.utils.StringUtils;
+import com.lz.manage.model.api.OrderInfoResponse;
 import com.lz.manage.model.api.StoreInfoResponse;
 import com.lz.manage.model.api.TokenResponse;
+import com.lz.manage.model.dto.storeInfo.StoreInfoResult;
 import com.lz.manage.service.IApiService;
 import com.lz.system.service.ISysConfigService;
 import lombok.extern.slf4j.Slf4j;
@@ -44,12 +46,14 @@ public class ApiServiceImpl implements IApiService {
         String clientId = configService.selectConfigByKey("clientId");
         String clientSecret = configService.selectConfigByKey("clientSecret");
         String grantType = configService.selectConfigByKey("grantType");
+        String apiUrl = configService.selectConfigByKey("getTokenApi");
         if (StringUtils.isNotEmpty(clientId)
                 || StringUtils.isNotEmpty(clientSecret)
-                || StringUtils.isNotEmpty(grantType)) {
-            throw new RuntimeException("请先配置clientId,clientSecret,grantType");
+                || StringUtils.isNotEmpty(grantType)
+                || StringUtils.isNotEmpty(apiUrl)) {
+            throw new RuntimeException("请先配置clientId,clientSecret,grantType,以及获取token接口");
         }
-        String url = StringUtils.format("https://openapi.sellfox.com/api/oauth/v2/token.json?client_id={}&client_secret={}&grant_type={}", clientId, clientSecret, grantType);
+        String url = StringUtils.format(apiUrl, clientId, clientSecret, grantType);
         System.out.println("curl -X GET \"" + url + "\"");
         //发送请求
         HttpRequest request = HttpUtil.createGet(url);
@@ -67,16 +71,16 @@ public class ApiServiceImpl implements IApiService {
     }
 
     @Override
-    public List<StoreInfoResponse> getStoreInfo(Long pageNo, Long pageSize) {
+    public List<StoreInfoResult> getStoreInfo(Long pageNo, Long pageSize) {
         String clientId = configService.selectConfigByKey("clientId");
         String clientSecret = configService.selectConfigByKey("clientSecret");
         String token = redisCache.getCacheObject("token");
+        String apiUrl = configService.selectConfigByKey("getStoreApi");
         if (StringUtils.isNotEmpty(clientId)
-                || StringUtils.isNotEmpty(clientSecret)) {
-            throw new RuntimeException("请先配置clientId,clientSecret");
+                || StringUtils.isNotEmpty(clientSecret)
+                || StringUtils.isNotEmpty(apiUrl)) {
+            throw new RuntimeException("请先配置clientId,clientSecret以及获取店铺接口");
         }
-        //url
-        String url = "https://openapi.sellfox.com/api/shop/pageList.json";
         String timestamp = String.valueOf(System.currentTimeMillis());
         String nonce = String.valueOf(new Random().nextInt(100000));
         String sign = null;
@@ -94,7 +98,7 @@ public class ApiServiceImpl implements IApiService {
         queryParams.put("sign", sign);
 
         // 拼接URL（处理编码）
-        String fullUrl = HttpUtil.urlWithForm(url, queryParams, null, true);
+        String fullUrl = HttpUtil.urlWithForm(apiUrl, queryParams, null, true);
 
         Map<String, Object> bodyParams = new HashMap<>();
         if (StringUtils.isNotNull(pageNo) && StringUtils.isNotNull(pageSize)) {
@@ -106,28 +110,112 @@ public class ApiServiceImpl implements IApiService {
         HashMap<String, String> headers = new HashMap<>();
         headers.put("Content-Type", "application/json");
 
-        HttpResponse response = HttpRequest.post(fullUrl)
-                .headerMap(headers, true)
-                .body(body)
-                .timeout(5000)
-                .execute();
-        //打印完整请求
-        String command = generateCurlCommand(url, queryParams, headers, body);
-        System.out.println(command);
-        if (!response.isOk()) {
-            throw new RuntimeException("获取店铺信息失败");
+        try {
+            HttpResponse response = HttpRequest.post(fullUrl)
+                    .headerMap(headers, true)
+                    .body(body)
+                    .timeout(5000)
+                    .execute();
+            //打印完整请求
+            String command = generateCurlCommand(apiUrl, queryParams, headers, body);
+            System.out.println(command);
+            if (!response.isOk()) {
+                throw new RuntimeException("获取店铺信息失败");
+            }
+            String responseBody = response.body();
+            StoreInfoResponse storeInfoResponse = JSONObject.parseObject(responseBody, StoreInfoResponse.class);
+            if (storeInfoResponse.getCode().equals("40001") || storeInfoResponse.getMsg().equals("access_token 失效")) {
+                getToken();
+                throw new ServiceException("access_token 失效，正在重新获取token,请重新操作");
+            }
+            if (!storeInfoResponse.getCode().equals("0")) {
+                throw new RuntimeException("获取店铺信息失败");
+            }
+            return storeInfoResponse.getData();
+        } catch (Exception e) {
+            log.error("获取店铺异常", e);
+            throw new ServiceException("获取店铺异常");
         }
-        String responseBody = response.body();
-        StoreInfoResponse storeInfoResponse = JSONObject.parseObject(responseBody, StoreInfoResponse.class);
-        if (!storeInfoResponse.getCode().equals("0")) {
-            throw new RuntimeException("获取店铺信息失败");
+    }
+
+    public OrderInfoResponse.Data getOrderInfo(String shopId, String amazonOrderId) {
+        if (StringUtils.isEmpty(shopId) || StringUtils.isEmpty(amazonOrderId)) {
+            throw new RuntimeException("店铺唯一标识,亚马逊订单ID不能为空");
         }
-        return storeInfoResponse.getData();
+        String clientId = configService.selectConfigByKey("clientId");
+        String clientSecret = configService.selectConfigByKey("clientSecret");
+        String token = redisCache.getCacheObject("token");
+        String apiUrl = configService.selectConfigByKey("getOrderInfoApi");
+        String nonce = String.valueOf(new Random().nextInt(100000));
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String sign = null;
+        // 生成签名
+        try {
+            sign = generateSign("/api/order/detailByOrderId.json", "post", token, clientId, token, nonce, clientSecret);
+        } catch (Exception e) {
+            log.error("生成签名失败！！！", e);
+            throw new ServiceException("生成签名失败");
+        }
+        // 构建Query参数（逐个put）
+        Map<String, Object> queryParams = new HashMap<>();
+        queryParams.put("access_token", token);
+        queryParams.put("client_id", clientId);
+        queryParams.put("nonce", nonce);
+        queryParams.put("timestamp", timestamp);
+        queryParams.put("sign", sign);
+
+        // 拼接URL（处理编码）
+        String fullUrl = HttpUtil.urlWithForm(apiUrl, queryParams, null, true);
+
+        // 构建请求体（JSON格式）
+        Map<String, Object> bodyParams = new HashMap<>();
+        bodyParams.put("shopId", shopId);
+        bodyParams.put("amazonOrderId", amazonOrderId);
+
+        HashMap<String, String> headers = new HashMap<>();
+        headers.put("Content-Type", "application/json");
+        try {
+            HttpResponse response = HttpRequest.post(fullUrl)
+                    .header("Content-Type", "application/json")
+                    .body(JSONUtil.toJsonStr(bodyParams))
+                    .timeout(5000)
+                    .execute();
+            //打印完整请求
+            String command = generateCurlCommand(apiUrl, queryParams, headers, JSONUtil.toJsonStr(bodyParams));
+            System.out.println(command);
+            if (!response.isOk()) {
+                throw new RuntimeException("获取订单信息失败");
+            }
+            String responseBody = response.body();
+            OrderInfoResponse orderInfoResponse = JSONObject.parseObject(responseBody, OrderInfoResponse.class);
+            if (orderInfoResponse.getCode().equals("40001") || orderInfoResponse.getMsg().equals("access_token 失效")) {
+                getToken();
+                throw new ServiceException("access_token 失效，正在重新获取token,请重新操作");
+            }
+            if (!orderInfoResponse.getCode().equals("0")) {
+                throw new RuntimeException("获取订单信息失败");
+            }
+
+            OrderInfoResponse.Data data = orderInfoResponse.getData();
+            if (StringUtils.isNull(data)) {
+                return new OrderInfoResponse.Data();
+            }
+
+            List<OrderInfoResponse.OrderItemVoList> orderItemVoList = data.getOrderItemVoList();
+            if (StringUtils.isNotEmpty(orderItemVoList)) {
+                OrderInfoResponse.OrderItemVoList orderItem = orderItemVoList.get(0);
+                data.setAsin(orderItem.getAsin());
+                data.setTitle(orderItem.getTitle());
+            }
+            return data;
+        } catch (Exception e) {
+            log.error("获取订单异常", e);
+            throw new ServiceException("获取订单异常");
+        }
     }
 
     private String generateCurlCommand(String url, Map<String, Object> queryParams, Map<String, String> headers, String body) {
         StringBuilder curlCommand = new StringBuilder("curl -X POST ");
-
         // 1. 手动拼接 Query 参数（确保编码正确）
         StringBuilder urlWithQuery = new StringBuilder(url);
         if (!queryParams.isEmpty()) {
@@ -138,25 +226,21 @@ public class ApiServiceImpl implements IApiService {
             );
             urlWithQuery.append(String.join("&", paramPairs));
         }
-
         // 2. 添加 Headers
         headers.forEach((key, value) ->
                 curlCommand.append("-H \"").append(key).append(": ").append(value).append("\" ")
         );
-
         // 3. 添加 Body（JSON格式）
         curlCommand.append("-d '").append(body).append("' ");
-
         // 4. 添加完整 URL（包含 Query）
         curlCommand.append("\"").append(urlWithQuery).append("\"");
-
         return curlCommand.toString();
     }
 
     /**
      * 生成签名主方法
      *
-     * @return
+     * @return String
      */
     public String generateSign(String url, String method,
                                String token, String clientId,
