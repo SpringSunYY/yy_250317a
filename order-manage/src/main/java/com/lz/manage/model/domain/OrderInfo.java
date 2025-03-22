@@ -103,6 +103,12 @@ public class OrderInfo implements Serializable {
     private String evaluateContent;
 
     /**
+     * 亚马逊商品编号
+     */
+    @Excel(name = "亚马逊商品编号")
+    private String orderItemId;
+
+    /**
      * 亚马逊商品链接
      */
     @Excel(name = "亚马逊商品链接")

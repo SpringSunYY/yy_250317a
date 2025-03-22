@@ -1,65 +1,109 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
-PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lz.manage.mapper.OrderInfoMapper">
-    
+
     <resultMap type="OrderInfo" id="OrderInfoResult">
-        <result property="id"    column="id"    />
-        <result property="platform"    column="platform"    />
-        <result property="storeId"    column="store_id"    />
-        <result property="marketplaceId"    column="marketplace_id"    />
-        <result property="amazonOrderId"    column="amazon_order_id"    />
-        <result property="purchaseDate"    column="purchase_date"    />
-        <result property="asin"    column="asin"    />
-        <result property="title"    column="title"    />
-        <result property="comment"    column="comment"    />
-        <result property="evaluateTime"    column="evaluate_time"    />
-        <result property="evaluateLevel"    column="evaluate_level"    />
-        <result property="evaluateContent"    column="evaluate_content"    />
-        <result property="goodsLink"    column="goods_link"    />
-        <result property="scanTime"    column="scan_time"    />
-        <result property="buyerName"    column="buyer_name"    />
-        <result property="buyerEmail"    column="buyer_email"    />
-        <result property="buyerLevel"    column="buyer_level"    />
-        <result property="buyerEvaluate"    column="buyer_evaluate"    />
-        <result property="begEvaluateStatus"    column="beg_evaluate_status"    />
-        <result property="begEvalueteContent"    column="beg_evaluete_content"    />
-        <result property="evaluatePrincipal"    column="evaluate_principal"    />
-        <result property="afterSaleSign"    column="after_sale_sign"    />
-        <result property="userName"    column="user_name"    />
-        <result property="createTime"    column="create_time"    />
-        <result property="updateBy"    column="update_by"    />
-        <result property="updateTime"    column="update_time"    />
-        <result property="remark"    column="remark"    />
+        <result property="id" column="id"/>
+        <result property="platform" column="platform"/>
+        <result property="storeId" column="store_id"/>
+        <result property="marketplaceId" column="marketplace_id"/>
+        <result property="amazonOrderId" column="amazon_order_id"/>
+        <result property="purchaseDate" column="purchase_date"/>
+        <result property="asin" column="asin"/>
+        <result property="title" column="title"/>
+        <result property="comment" column="comment"/>
+        <result property="evaluateTime" column="evaluate_time"/>
+        <result property="evaluateLevel" column="evaluate_level"/>
+        <result property="evaluateContent" column="evaluate_content"/>
+        <result property="orderItemId" column="order_item_id"/>
+        <result property="goodsLink" column="goods_link"/>
+        <result property="scanTime" column="scan_time"/>
+        <result property="buyerName" column="buyer_name"/>
+        <result property="buyerEmail" column="buyer_email"/>
+        <result property="buyerLevel" column="buyer_level"/>
+        <result property="buyerEvaluate" column="buyer_evaluate"/>
+        <result property="begEvaluateStatus" column="beg_evaluate_status"/>
+        <result property="begEvalueteContent" column="beg_evaluete_content"/>
+        <result property="evaluatePrincipal" column="evaluate_principal"/>
+        <result property="afterSaleSign" column="after_sale_sign"/>
+        <result property="userName" column="user_name"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
     </resultMap>
 
     <sql id="selectOrderInfoVo">
-        select id, platform, store_id, marketplace_id, amazon_order_id, purchase_date, asin, title, comment, evaluate_time, evaluate_level, evaluate_content, goods_link, scan_time, buyer_name, buyer_email, buyer_level, buyer_evaluate, beg_evaluate_status, beg_evaluete_content, evaluate_principal, after_sale_sign, user_name, create_time, update_by, update_time, remark from tb_order_info
+        select id,
+               platform,
+               store_id,
+               marketplace_id,
+               amazon_order_id,
+               purchase_date,
+               asin,
+               title,
+               comment,
+               evaluate_time,
+               evaluate_level,
+               evaluate_content,
+               order_item_id,
+               goods_link,
+               scan_time,
+               buyer_name,
+               buyer_email,
+               buyer_level,
+               buyer_evaluate,
+               beg_evaluate_status,
+               beg_evaluete_content,
+               evaluate_principal,
+               after_sale_sign,
+               user_name,
+               create_time,
+               update_by,
+               update_time,
+               remark
+        from tb_order_info
     </sql>
 
     <select id="selectOrderInfoList" parameterType="OrderInfo" resultMap="OrderInfoResult">
         <include refid="selectOrderInfoVo"/>
-        <where>  
-            <if test="id != null "> and id = #{id}</if>
-            <if test="platform != null  and platform != ''"> and platform = #{platform}</if>
-            <if test="storeId != null  and storeId != ''"> and store_id = #{storeId}</if>
-            <if test="marketplaceId != null  and marketplaceId != ''"> and marketplace_id like concat('%', #{marketplaceId}, '%')</if>
-            <if test="amazonOrderId != null  and amazonOrderId != ''"> and amazon_order_id = #{amazonOrderId}</if>
-            <if test="params.beginPurchaseDate != null and params.beginPurchaseDate != '' and params.endPurchaseDate != null and params.endPurchaseDate != ''"> and purchase_date between #{params.beginPurchaseDate} and #{params.endPurchaseDate}</if>
-            <if test="asin != null  and asin != ''"> and asin like concat('%', #{asin}, '%')</if>
-            <if test="title != null  and title != ''"> and title like concat('%', #{title}, '%')</if>
-            <if test="params.beginScanTime != null and params.beginScanTime != '' and params.endScanTime != null and params.endScanTime != ''"> and scan_time between #{params.beginScanTime} and #{params.endScanTime}</if>
-            <if test="buyerName != null  and buyerName != ''"> and buyer_name like concat('%', #{buyerName}, '%')</if>
-            <if test="buyerEmail != null  and buyerEmail != ''"> and buyer_email = #{buyerEmail}</if>
-            <if test="begEvaluateStatus != null  and begEvaluateStatus != ''"> and beg_evaluate_status = #{begEvaluateStatus}</if>
-            <if test="evaluatePrincipal != null  and evaluatePrincipal != ''"> and evaluate_principal like concat('%', #{evaluatePrincipal}, '%')</if>
-            <if test="afterSaleSign != null  and afterSaleSign != ''"> and after_sale_sign = #{afterSaleSign}</if>
-            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''"> and create_time between #{params.beginCreateTime} and #{params.endCreateTime}</if>
-            <if test="remark != null  and remark != ''"> and remark = #{remark}</if>
+        <where>
+            <if test="id != null ">and id = #{id}</if>
+            <if test="platform != null  and platform != ''">and platform = #{platform}</if>
+            <if test="storeId != null  and storeId != ''">and store_id = #{storeId}</if>
+            <if test="marketplaceId != null  and marketplaceId != ''">and marketplace_id like concat('%',
+                #{marketplaceId}, '%')
+            </if>
+            <if test="amazonOrderId != null  and amazonOrderId != ''">and amazon_order_id = #{amazonOrderId}</if>
+            <if test="params.beginPurchaseDate != null and params.beginPurchaseDate != '' and params.endPurchaseDate != null and params.endPurchaseDate != ''">
+                and purchase_date between #{params.beginPurchaseDate} and #{params.endPurchaseDate}
+            </if>
+            <if test="orderItemId != null  and orderItemId != ''">and order_item_id like concat('%', #{orderItemId},
+                '%')
+            </if>
+            <if test="asin != null  and asin != ''">and asin like concat('%', #{asin}, '%')</if>
+            <if test="title != null  and title != ''">and title like concat('%', #{title}, '%')</if>
+            <if test="params.beginScanTime != null and params.beginScanTime != '' and params.endScanTime != null and params.endScanTime != ''">
+                and scan_time between #{params.beginScanTime} and #{params.endScanTime}
+            </if>
+            <if test="buyerName != null  and buyerName != ''">and buyer_name like concat('%', #{buyerName}, '%')</if>
+            <if test="buyerEmail != null  and buyerEmail != ''">and buyer_email = #{buyerEmail}</if>
+            <if test="begEvaluateStatus != null  and begEvaluateStatus != ''">and beg_evaluate_status =
+                #{begEvaluateStatus}
+            </if>
+            <if test="evaluatePrincipal != null  and evaluatePrincipal != ''">and evaluate_principal like concat('%',
+                #{evaluatePrincipal}, '%')
+            </if>
+            <if test="afterSaleSign != null  and afterSaleSign != ''">and after_sale_sign = #{afterSaleSign}</if>
+            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''">
+                and create_time between #{params.beginCreateTime} and #{params.endCreateTime}
+            </if>
+            <if test="remark != null  and remark != ''">and remark = #{remark}</if>
         </where>
     </select>
-    
+
     <select id="selectOrderInfoById" parameterType="Long" resultMap="OrderInfoResult">
         <include refid="selectOrderInfoVo"/>
         where id = #{id}
@@ -80,6 +124,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="evaluateTime != null">evaluate_time,</if>
             <if test="evaluateLevel != null">evaluate_level,</if>
             <if test="evaluateContent != null">evaluate_content,</if>
+            <if test="orderItemId != null">order_item_id,</if>
             <if test="goodsLink != null">goods_link,</if>
             <if test="scanTime != null">scan_time,</if>
             <if test="buyerName != null">buyer_name,</if>
@@ -95,7 +140,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="updateBy != null">update_by,</if>
             <if test="updateTime != null">update_time,</if>
             <if test="remark != null">remark,</if>
-         </trim>
+        </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">#{id},</if>
             <if test="platform != null">#{platform},</if>
@@ -109,6 +154,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="evaluateTime != null">#{evaluateTime},</if>
             <if test="evaluateLevel != null">#{evaluateLevel},</if>
             <if test="evaluateContent != null">#{evaluateContent},</if>
+            <if test="orderItemId != null">#{orderItemId},</if>
             <if test="goodsLink != null">#{goodsLink},</if>
             <if test="scanTime != null">#{scanTime},</if>
             <if test="buyerName != null">#{buyerName},</if>
@@ -124,7 +170,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="updateBy != null">#{updateBy},</if>
             <if test="updateTime != null">#{updateTime},</if>
             <if test="remark != null">#{remark},</if>
-         </trim>
+        </trim>
     </insert>
 
     <update id="updateOrderInfo" parameterType="OrderInfo">
@@ -141,6 +187,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="evaluateTime != null">evaluate_time = #{evaluateTime},</if>
             <if test="evaluateLevel != null">evaluate_level = #{evaluateLevel},</if>
             <if test="evaluateContent != null">evaluate_content = #{evaluateContent},</if>
+            <if test="orderItemId != null">order_item_id = #{orderItemId},</if>
             <if test="goodsLink != null">goods_link = #{goodsLink},</if>
             <if test="scanTime != null">scan_time = #{scanTime},</if>
             <if test="buyerName != null">buyer_name = #{buyerName},</if>
@@ -167,7 +214,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </delete>
 
     <delete id="deleteOrderInfoByIds" parameterType="String">
-        delete from tb_order_info where id in 
+        delete from tb_order_info where id in
         <foreach item="id" collection="array" open="(" separator="," close=")">
             #{id}
         </foreach>
