@@ -31,6 +31,7 @@ public class OrderInfoVo implements Serializable
     /** 店铺 */
     @Excel(name = "店铺")
     private String storeId;
+    private String storeName;
 
     /** 站点 */
     @Excel(name = "站点")
@@ -72,6 +73,10 @@ public class OrderInfoVo implements Serializable
     /** 亚马逊商品链接 */
     @Excel(name = "亚马逊商品链接")
     private String goodsLink;
+
+    /** 亚马逊商品编号 */
+    @Excel(name = "亚马逊商品编号")
+    private String orderItemId;
 
     /** 扫码时间 */
     @JsonFormat(pattern = "yyyy-MM-dd")

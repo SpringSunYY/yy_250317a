@@ -52,10 +52,10 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="亚马逊商品链接" prop="goodsLink">
+      <el-form-item label="商品编号" prop="orderItemId">
         <el-input
-          v-model="queryParams.goodsLink"
-          placeholder="请输入亚马逊商品链接"
+          v-model="queryParams.orderItemId"
+          placeholder="请输入亚马逊商品编号"
           clearable
           @keyup.enter.native="handleQuery"
         />
@@ -111,7 +111,7 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="请求评论状态" prop="begEvaluateStatus">
+      <el-form-item label="评论状态" prop="begEvaluateStatus">
         <el-select v-model="queryParams.begEvaluateStatus" placeholder="请选择请求评论状态" clearable>
           <el-option
             v-for="dict in dict.type.beg_evaluate_status"
@@ -121,7 +121,7 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="评论负责人" prop="evaluatePrincipal">
+      <el-form-item label="负责人" prop="evaluatePrincipal">
         <el-input
           v-model="queryParams.evaluatePrincipal"
           placeholder="请输入评论负责人"
@@ -245,7 +245,9 @@
       <el-table-column label="亚马逊商品链接" :show-overflow-tooltip="true" align="center" v-if="columns[12].visible"
                        prop="goodsLink"
       />
-      <el-table-column label="亚马逊商品编号" :show-overflow-tooltip="true" align="center" v-if="columns[13].visible" prop="orderItemId" />
+      <el-table-column label="亚马逊商品编号" :show-overflow-tooltip="true" align="center" v-if="columns[13].visible"
+                       prop="orderItemId"
+      />
       <el-table-column label="扫码时间" align="center" v-if="columns[14].visible" prop="scanTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.scanTime, '{y}-{m}-{d} {h}:{m}:{s}') }}</span>
@@ -360,20 +362,21 @@
           </el-col>
           <el-col :span="8">
             <el-form-item label="获取订单信息" prop="getOrderInfoByApi">
-              <el-button type="primary" @click="getOrderInfoByApiInfo">获取订单信息</el-button>
+              <el-button type="primary" :loading="getOrderLoading" @click="getOrderInfoByApiInfo">获取订单信息
+              </el-button>
             </el-form-item>
           </el-col>
-          <el-col :span="8">
+          <el-col :span="12">
             <el-form-item label="平台" prop="platform">
               <el-input v-model="form.platform" placeholder="请输入平台"/>
             </el-form-item>
           </el-col>
-          <el-col :span="8">
+          <el-col :span="12">
             <el-form-item label="站点" prop="marketplaceId">
               <el-input readonly v-model="form.marketplaceId" placeholder="请输入站点"/>
             </el-form-item>
           </el-col>
-          <el-col :span="8">
+          <el-col :span="12">
             <el-form-item label="订购时间" prop="purchaseDate">
               <el-input readonly v-model="form.purchaseDate" placeholder="请输入订购时间"/>
             </el-form-item>
@@ -419,6 +422,11 @@
               <el-input v-model="form.goodsLink" placeholder="请输入亚马逊商品链接"/>
             </el-form-item>
           </el-col>
+          <!--          <el-col :span="12">-->
+          <!--            <el-form-item label="亚马逊商品编号" prop="orderItemId">-->
+          <!--              <el-input v-model="form.orderItemId" placeholder="请输入亚马逊商品编号"/>-->
+          <!--            </el-form-item>-->
+          <!--          </el-col>-->
           <el-col :span="12">
             <el-form-item label="扫码时间" prop="scanTime">
               <el-date-picker clearable
@@ -515,6 +523,7 @@ export default {
   dicts: ['beg_evaluate_status', 'after_sale_sign'],
   data() {
     return {
+      getOrderLoading: false,
       //店铺信息
       storeInfoList: [],
       storeInfoLoading: false,
@@ -657,12 +666,17 @@ export default {
         storeId: this.form.storeId,
         amazonOrderId: this.form.amazonOrderId
       }
+      this.getOrderLoading = true
       getOrderInfoByApi(query).then(res => {
         console.log(res)
         this.form.marketplaceId = res?.data?.marketplaceId
         this.form.purchaseDate = res?.data?.purchaseDate
         this.form.asin = res?.data?.asin
         this.form.title = res?.data?.title
+        this.form.orderItemId = res?.data?.orderItemId
+        this.$modal.msgSuccess('获取成功')
+      }).finally(() => {
+        this.getOrderLoading = false
       })
     },
     /** 查询订单列表 */
@@ -749,11 +763,13 @@ export default {
     handleAdd() {
       this.reset()
       this.open = true
+      this.getOrderLoading = false
       this.title = '添加订单'
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset()
+      this.getOrderLoading = false
       const id = row.id || this.ids
       getOrderInfo(id).then(response => {
         this.form = response.data
