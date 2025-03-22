@@ -42,5 +42,5 @@ public interface IApiService {
      * param:
      * return: com.lz.manage.model.api.OrderInfoResponse
      **/
-    OrderInfoResponse.Data getOrderInfo(String shopId, String amazonOrderId);
+    OrderInfoResponse.Data getOrderInfo(String shopId, String amazonOrderId,String sellerOrderId);
 }

@@ -51,6 +51,11 @@ public class OrderInfoQuery implements Serializable {
     private String amazonOrderId;
 
     /**
+     * 卖家订单编号
+     */
+    private String sellerOrderId;
+
+    /**
      * 订购时间
      */
     private String purchaseDate;

@@ -41,6 +41,11 @@ public class OrderInfoResponse implements Serializable {
          * 订单号
          */
         private String amazonOrderId;
+
+        /**
+         * 卖家订单编号
+         */
+        private String sellerOrderId;
         /**
          * 订购时间
          */

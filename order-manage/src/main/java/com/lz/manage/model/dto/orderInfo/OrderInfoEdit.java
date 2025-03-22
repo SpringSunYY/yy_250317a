@@ -64,6 +64,11 @@ public class OrderInfoEdit implements Serializable {
     private String orderItemId;
 
     /**
+     * 卖家订单编号
+     */
+    private String sellerOrderId;
+
+    /**
      * 亚马逊评价链接
      */
     private String comment;

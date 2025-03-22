@@ -25,6 +25,11 @@ public class OrderInfoApiQuery implements Serializable {
     /**
      * 站点
      */
-    @NotBlank(message = "订单编号不能为空")
+    @NotBlank(message = "订单号不能为空")
     private String amazonOrderId;
+
+    /**
+     * 卖家订单编号
+     */
+    private String sellerOrderId;
 }

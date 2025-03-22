@@ -199,7 +199,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
     @Override
     public OrderInfoResponse.Data getOrderInfoByApi(OrderInfoApiQuery orderInfoApiQuery) {
         StoreInfo storeInfo = storeInfoService.selectStoreInfoById(orderInfoApiQuery.getStoreId());
-        OrderInfoResponse.Data orderInfo = apiService.getOrderInfo(storeInfo.getStoreId(), orderInfoApiQuery.getAmazonOrderId());
+        OrderInfoResponse.Data orderInfo = apiService.getOrderInfo(storeInfo.getStoreId(), orderInfoApiQuery.getAmazonOrderId(), orderInfoApiQuery.getSellerOrderId());
         if (StringUtils.isNull(orderInfo)) {
             throw new RuntimeException("订单信息不存在");
         }

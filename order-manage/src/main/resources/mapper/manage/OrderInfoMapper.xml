@@ -10,6 +10,7 @@
         <result property="storeId" column="store_id"/>
         <result property="marketplaceId" column="marketplace_id"/>
         <result property="amazonOrderId" column="amazon_order_id"/>
+        <result property="sellerOrderId" column="seller_order_id"/>
         <result property="purchaseDate" column="purchase_date"/>
         <result property="asin" column="asin"/>
         <result property="title" column="title"/>
@@ -40,6 +41,7 @@
                platform,
                store_id,
                marketplace_id,
+               seller_order_id,
                amazon_order_id,
                purchase_date,
                asin,
@@ -76,7 +78,12 @@
             <if test="marketplaceId != null  and marketplaceId != ''">and marketplace_id like concat('%',
                 #{marketplaceId}, '%')
             </if>
-            <if test="amazonOrderId != null  and amazonOrderId != ''">and amazon_order_id = #{amazonOrderId}</if>
+            <if test="sellerOrderId != null  and sellerOrderId != ''">and seller_order_id like concat('%',
+                #{sellerOrderId}, '%')
+            </if>
+            <if test="amazonOrderId != null  and amazonOrderId != ''">and amazon_order_id like concat('%',
+                #{amazonOrderId}, '%')
+            </if>
             <if test="params.beginPurchaseDate != null and params.beginPurchaseDate != '' and params.endPurchaseDate != null and params.endPurchaseDate != ''">
                 and purchase_date between #{params.beginPurchaseDate} and #{params.endPurchaseDate}
             </if>
@@ -116,6 +123,7 @@
             <if test="platform != null">platform,</if>
             <if test="storeId != null">store_id,</if>
             <if test="marketplaceId != null">marketplace_id,</if>
+            <if test="sellerOrderId != null">seller_order_id,</if>
             <if test="amazonOrderId != null">amazon_order_id,</if>
             <if test="purchaseDate != null">purchase_date,</if>
             <if test="asin != null">asin,</if>
@@ -146,6 +154,7 @@
             <if test="platform != null">#{platform},</if>
             <if test="storeId != null">#{storeId},</if>
             <if test="marketplaceId != null">#{marketplaceId},</if>
+            <if test="sellerOrderId != null">#{sellerOrderId},</if>
             <if test="amazonOrderId != null">#{amazonOrderId},</if>
             <if test="purchaseDate != null">#{purchaseDate},</if>
             <if test="asin != null">#{asin},</if>
@@ -179,6 +188,7 @@
             <if test="platform != null">platform = #{platform},</if>
             <if test="storeId != null">store_id = #{storeId},</if>
             <if test="marketplaceId != null">marketplace_id = #{marketplaceId},</if>
+            <if test="sellerOrderId != null">seller_order_id = #{sellerOrderId},</if>
             <if test="amazonOrderId != null">amazon_order_id = #{amazonOrderId},</if>
             <if test="purchaseDate != null">purchase_date = #{purchaseDate},</if>
             <if test="asin != null">asin = #{asin},</if>

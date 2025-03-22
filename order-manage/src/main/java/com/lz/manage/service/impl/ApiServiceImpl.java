@@ -143,7 +143,7 @@ public class ApiServiceImpl implements IApiService {
     }
 
     @Override
-    public OrderInfoResponse.Data getOrderInfo(String shopId, String amazonOrderId) {
+    public OrderInfoResponse.Data getOrderInfo(String shopId, String amazonOrderId, String sellerOrderId) {
         if (StringUtils.isEmpty(shopId) || StringUtils.isEmpty(amazonOrderId)) {
             throw new RuntimeException("店铺唯一标识,亚马逊订单ID不能为空");
         }
@@ -185,7 +185,12 @@ public class ApiServiceImpl implements IApiService {
         // 构建请求体（JSON格式）
         Map<String, Object> bodyParams = new HashMap<>();
         bodyParams.put("shopId", shopId);
-        bodyParams.put("amazonOrderId", amazonOrderId);
+        if (StringUtils.isEmpty(sellerOrderId)) {
+            bodyParams.put("sellerOrderId", sellerOrderId);
+        }
+        if (StringUtils.isEmpty(amazonOrderId)) {
+            bodyParams.put("amazonOrderId", amazonOrderId);
+        }
 
         HashMap<String, String> headers = new HashMap<>();
         headers.put("Content-Type", "application/json");

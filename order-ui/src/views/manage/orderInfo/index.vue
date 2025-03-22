@@ -52,6 +52,14 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
+      <el-form-item label="卖家订单" prop="sellerOrderId">
+        <el-input
+          v-model="queryParams.sellerOrderId"
+          placeholder="请输入卖家订单编号"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
       <el-form-item label="商品编号" prop="orderItemId">
         <el-input
           v-model="queryParams.orderItemId"
@@ -218,86 +226,89 @@
       <el-table-column label="站点" :show-overflow-tooltip="true" align="center" v-if="columns[3].visible"
                        prop="marketplaceId"
       />
-      <el-table-column label="订单号" :show-overflow-tooltip="true" align="center" v-if="columns[4].visible"
+      <el-table-column label="卖家订单编号" :show-overflow-tooltip="true" align="center" v-if="columns[4].visible"
+                       prop="sellerOrderId"
+      />
+      <el-table-column label="订单号" :show-overflow-tooltip="true" align="center" v-if="columns[5].visible"
                        prop="amazonOrderId"
       />
-      <el-table-column label="订购时间" :show-overflow-tooltip="true" align="center" v-if="columns[5].visible"
+      <el-table-column label="订购时间" :show-overflow-tooltip="true" align="center" v-if="columns[6].visible"
                        prop="purchaseDate"
       />
-      <el-table-column label="ASIN" :show-overflow-tooltip="true" align="center" v-if="columns[6].visible" prop="asin"/>
-      <el-table-column label="品名" :show-overflow-tooltip="true" align="center" v-if="columns[7].visible"
+      <el-table-column label="ASIN" :show-overflow-tooltip="true" align="center" v-if="columns[7].visible" prop="asin"/>
+      <el-table-column label="品名" :show-overflow-tooltip="true" align="center" v-if="columns[8].visible"
                        prop="title"
       />
-      <el-table-column label="亚马逊评价链接" :show-overflow-tooltip="true" align="center" v-if="columns[8].visible"
+      <el-table-column label="亚马逊评价链接" :show-overflow-tooltip="true" align="center" v-if="columns[9].visible"
                        prop="comment"
       />
-      <el-table-column label="亚马逊评价时间" align="center" v-if="columns[9].visible" prop="evaluateTime" width="180">
+      <el-table-column label="亚马逊评价时间" align="center" v-if="columns[10].visible" prop="evaluateTime" width="180">
         <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.evaluateTime, '{y}-{m}-{d} {h}:{m}:{s}') }}</span>
+          <span>{{ parseTime(scope.row.evaluateTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="亚马逊评分星级" :show-overflow-tooltip="true" align="center" v-if="columns[10].visible"
+      <el-table-column label="亚马逊评分星级" :show-overflow-tooltip="true" align="center" v-if="columns[11].visible"
                        prop="evaluateLevel"
       />
-      <el-table-column label="亚马逊评价内容" :show-overflow-tooltip="true" align="center" v-if="columns[11].visible"
+      <el-table-column label="亚马逊评价内容" :show-overflow-tooltip="true" align="center" v-if="columns[12].visible"
                        prop="evaluateContent"
       />
-      <el-table-column label="亚马逊商品链接" :show-overflow-tooltip="true" align="center" v-if="columns[12].visible"
+      <el-table-column label="亚马逊商品链接" :show-overflow-tooltip="true" align="center" v-if="columns[13].visible"
                        prop="goodsLink"
       />
-      <el-table-column label="亚马逊商品编号" :show-overflow-tooltip="true" align="center" v-if="columns[13].visible"
+      <el-table-column label="亚马逊商品编号" :show-overflow-tooltip="true" align="center" v-if="columns[14].visible"
                        prop="orderItemId"
       />
-      <el-table-column label="扫码时间" align="center" v-if="columns[14].visible" prop="scanTime" width="180">
+      <el-table-column label="扫码时间" align="center" v-if="columns[15].visible" prop="scanTime" width="180">
         <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.scanTime, '{y}-{m}-{d} {h}:{m}:{s}') }}</span>
+          <span>{{ parseTime(scope.row.scanTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="买家姓名" :show-overflow-tooltip="true" align="center" v-if="columns[15].visible"
+      <el-table-column label="买家姓名" :show-overflow-tooltip="true" align="center" v-if="columns[16].visible"
                        prop="buyerName"
       />
-      <el-table-column label="买家邮箱" :show-overflow-tooltip="true" align="center" v-if="columns[16].visible"
+      <el-table-column label="买家邮箱" :show-overflow-tooltip="true" align="center" v-if="columns[17].visible"
                        prop="buyerEmail"
       />
-      <el-table-column label="买家评分" :show-overflow-tooltip="true" align="center" v-if="columns[17].visible"
+      <el-table-column label="买家评分" :show-overflow-tooltip="true" align="center" v-if="columns[18].visible"
                        prop="buyerLevel"
       />
-      <el-table-column label="买家评论" :show-overflow-tooltip="true" align="center" v-if="columns[18].visible"
+      <el-table-column label="买家评论" :show-overflow-tooltip="true" align="center" v-if="columns[19].visible"
                        prop="buyerEvaluate"
       />
-      <el-table-column label="请求评论状态" align="center" v-if="columns[19].visible" prop="begEvaluateStatus">
+      <el-table-column label="请求评论状态" align="center" v-if="columns[20].visible" prop="begEvaluateStatus">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.beg_evaluate_status" :value="scope.row.begEvaluateStatus"/>
         </template>
       </el-table-column>
-      <el-table-column label="请求评论内容" :show-overflow-tooltip="true" align="center" v-if="columns[20].visible"
+      <el-table-column label="请求评论内容" :show-overflow-tooltip="true" align="center" v-if="columns[21].visible"
                        prop="begEvalueteContent"
       />
-      <el-table-column label="评论负责人" :show-overflow-tooltip="true" align="center" v-if="columns[21].visible"
+      <el-table-column label="评论负责人" :show-overflow-tooltip="true" align="center" v-if="columns[22].visible"
                        prop="evaluatePrincipal"
       />
-      <el-table-column label="售后标记" align="center" v-if="columns[22].visible" prop="afterSaleSign">
+      <el-table-column label="售后标记" align="center" v-if="columns[23].visible" prop="afterSaleSign">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.after_sale_sign" :value="scope.row.afterSaleSign"/>
         </template>
       </el-table-column>
-      <el-table-column label="创建人" :show-overflow-tooltip="true" align="center" v-if="columns[23].visible"
+      <el-table-column label="创建人" :show-overflow-tooltip="true" align="center" v-if="columns[24].visible"
                        prop="userName"
       />
-      <el-table-column label="创建时间" align="center" v-if="columns[24].visible" prop="createTime" width="180">
+      <el-table-column label="创建时间" align="center" v-if="columns[25].visible" prop="createTime" width="180">
         <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d} {h}:{m}:{s}') }}</span>
+          <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="更新人" :show-overflow-tooltip="true" align="center" v-if="columns[25].visible"
+      <el-table-column label="更新人" :show-overflow-tooltip="true" align="center" v-if="columns[26].visible"
                        prop="updateBy"
       />
-      <el-table-column label="更新时间" align="center" v-if="columns[26].visible" prop="updateTime" width="180">
+      <el-table-column label="更新时间" align="center" v-if="columns[27].visible" prop="updateTime" width="180">
         <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d} {h}:{m}:{s}') }}</span>
+          <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="备注" :show-overflow-tooltip="true" align="center" v-if="columns[27].visible"
+      <el-table-column label="备注" :show-overflow-tooltip="true" align="center" v-if="columns[28].visible"
                        prop="remark"
       />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
@@ -334,7 +345,7 @@
     <el-dialog :title="title" :visible.sync="open" width="1280px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="120px">
         <el-row :gutter="40">
-          <el-col :span="8">
+          <el-col :span="12">
             <el-form-item label="店铺" prop="storeId">
               <el-select
                 v-model="form.storeId"
@@ -355,26 +366,28 @@
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="8">
+          <el-col :span="12">
             <el-form-item label="订单号" prop="amazonOrderId">
               <el-input v-model="form.amazonOrderId" placeholder="请输入订单号"/>
             </el-form-item>
           </el-col>
-          <el-col :span="8">
+          <el-col :span="12">
+            <el-form-item label="卖家订单编号" prop="sellerOrderId">
+              <el-input
+                v-model="queryParams.sellerOrderId"
+                placeholder="请输入卖家订单编号"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
             <el-form-item label="获取订单信息" prop="getOrderInfoByApi">
               <el-button type="primary" :loading="getOrderLoading" @click="getOrderInfoByApiInfo">获取订单信息
               </el-button>
             </el-form-item>
           </el-col>
-          <el-col :span="12">
-            <el-form-item label="平台" prop="platform">
-              <el-input v-model="form.platform" placeholder="请输入平台"/>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="站点" prop="marketplaceId">
-              <el-input readonly v-model="form.marketplaceId" placeholder="请输入站点"/>
-            </el-form-item>
+          <el-col :span="24">
           </el-col>
           <el-col :span="12">
             <el-form-item label="订购时间" prop="purchaseDate">
@@ -389,6 +402,16 @@
           <el-col :span="12">
             <el-form-item label="品名" prop="title">
               <el-input readonly v-model="form.title" placeholder="请输入品名"/>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="站点" prop="marketplaceId">
+              <el-input readonly v-model="form.marketplaceId" placeholder="请输入站点"/>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="平台" prop="platform">
+              <el-input v-model="form.platform" placeholder="请输入平台"/>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -538,30 +561,31 @@ export default {
         { key: 1, label: '平台', visible: true },
         { key: 2, label: '店铺', visible: true },
         { key: 3, label: '站点', visible: true },
-        { key: 4, label: '订单号', visible: true },
-        { key: 5, label: '订购时间', visible: true },
-        { key: 6, label: 'ASIN', visible: true },
-        { key: 7, label: '品名', visible: true },
-        { key: 8, label: '亚马逊评价链接', visible: false },
-        { key: 9, label: '亚马逊评价时间', visible: false },
-        { key: 10, label: '亚马逊评分星级', visible: false },
-        { key: 11, label: '亚马逊评价内容', visible: false },
-        { key: 12, label: '亚马逊商品链接', visible: false },
-        { key: 13, label: '亚马逊商品编号', visible: false },
-        { key: 14, label: '扫码时间', visible: false },
-        { key: 15, label: '买家姓名', visible: true },
-        { key: 16, label: '买家邮箱', visible: false },
-        { key: 17, label: '买家评分', visible: false },
-        { key: 18, label: '买家评论', visible: false },
-        { key: 19, label: '请求评论状态', visible: false },
-        { key: 20, label: '请求评论内容', visible: false },
-        { key: 21, label: '评论负责人', visible: true },
-        { key: 22, label: '售后标记', visible: false },
-        { key: 23, label: '创建人', visible: false },
-        { key: 24, label: '创建时间', visible: false },
-        { key: 25, label: '更新人', visible: false },
-        { key: 26, label: '更新时间', visible: false },
-        { key: 27, label: '备注', visible: false }
+        { key: 4, label: '卖家订单编号', visible: true },
+        { key: 5, label: '订单号', visible: true },
+        { key: 6, label: '订购时间', visible: true },
+        { key: 7, label: 'ASIN', visible: true },
+        { key: 8, label: '品名', visible: true },
+        { key: 9, label: '亚马逊评价链接', visible: false },
+        { key: 10, label: '亚马逊评价时间', visible: false },
+        { key: 11, label: '亚马逊评分星级', visible: true },
+        { key: 12, label: '亚马逊评价内容', visible: false },
+        { key: 13, label: '亚马逊商品链接', visible: true },
+        { key: 14, label: '亚马逊商品编号', visible: false },
+        { key: 15, label: '扫码时间', visible: false },
+        { key: 16, label: '买家姓名', visible: true },
+        { key: 17, label: '买家邮箱', visible: false },
+        { key: 18, label: '买家评分', visible: false },
+        { key: 19, label: '买家评论', visible: false },
+        { key: 20, label: '请求评论状态', visible: false },
+        { key: 21, label: '请求评论内容', visible: false },
+        { key: 22, label: '评论负责人', visible: false },
+        { key: 23, label: '售后标记', visible: true },
+        { key: 24, label: '创建人', visible: false },
+        { key: 25, label: '创建时间', visible: false },
+        { key: 26, label: '更新人', visible: false },
+        { key: 27, label: '更新时间', visible: false },
+        { key: 28, label: '备注', visible: false }
       ],
       // 遮罩层
       loading: true,
@@ -595,6 +619,7 @@ export default {
         platform: null,
         storeId: null,
         marketplaceId: null,
+        sellerOrderId: null,
         amazonOrderId: null,
         purchaseDate: null,
         asin: null,
@@ -674,6 +699,7 @@ export default {
         this.form.asin = res?.data?.asin
         this.form.title = res?.data?.title
         this.form.orderItemId = res?.data?.orderItemId
+        this.form.sellOrderId = res?.data?.sellerOrderId
         this.$modal.msgSuccess('获取成功')
       }).finally(() => {
         this.getOrderLoading = false
@@ -714,6 +740,7 @@ export default {
         storeId: null,
         marketplaceId: null,
         amazonOrderId: null,
+        sellerOrderId: null,
         purchaseDate: null,
         asin: null,
         title: null,
