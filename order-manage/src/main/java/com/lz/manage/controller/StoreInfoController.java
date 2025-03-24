@@ -56,6 +56,18 @@ public class StoreInfoController extends BaseController {
         return table;
     }
 
+    @PreAuthorize("@sk.hasKey()")
+    @GetMapping("/external/list")
+    public TableDataInfo listExternal(StoreInfoQuery storeInfoQuery) {
+        StoreInfo storeInfo = StoreInfoQuery.queryToObj(storeInfoQuery);
+        startPage();
+        List<StoreInfo> list = storeInfoService.selectStoreInfoList(storeInfo);
+        List<StoreInfoVo> listVo = list.stream().map(StoreInfoVo::objToVo).collect(Collectors.toList());
+        TableDataInfo table = getDataTable(list);
+        table.setRows(listVo);
+        return table;
+    }
+
     /**
      * 导出店铺信息列表
      */
