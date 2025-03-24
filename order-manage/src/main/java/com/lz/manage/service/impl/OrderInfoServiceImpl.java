@@ -1,34 +1,30 @@
 package com.lz.manage.service.impl;
 
-import java.util.*;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.stream.Collectors;
-
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lz.common.exception.ServiceException;
+import com.lz.common.utils.DateUtils;
 import com.lz.common.utils.SecurityUtils;
 import com.lz.common.utils.StringUtils;
-
-import java.util.Date;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.lz.common.utils.DateUtils;
-
-import javax.annotation.Resource;
-
+import com.lz.manage.mapper.OrderInfoMapper;
 import com.lz.manage.model.api.OrderInfoResponse;
+import com.lz.manage.model.domain.OrderInfo;
 import com.lz.manage.model.domain.StoreInfo;
 import com.lz.manage.model.dto.orderInfo.OrderInfoApiQuery;
+import com.lz.manage.model.dto.orderInfo.OrderInfoQuery;
+import com.lz.manage.model.enmus.BegEvaluateStatusEnum;
+import com.lz.manage.model.vo.orderInfo.OrderInfoVo;
 import com.lz.manage.service.IApiService;
+import com.lz.manage.service.IOrderInfoService;
 import com.lz.manage.service.IStoreInfoService;
 import org.springframework.stereotype.Service;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.lz.manage.mapper.OrderInfoMapper;
-import com.lz.manage.model.domain.OrderInfo;
-import com.lz.manage.service.IOrderInfoService;
-import com.lz.manage.model.dto.orderInfo.OrderInfoQuery;
-import com.lz.manage.model.vo.orderInfo.OrderInfoVo;
+
+import javax.annotation.Resource;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.lz.common.constant.HttpStatus.NO_CONTENT;
 
 /**
  * 订单Service业务层处理
@@ -86,6 +82,11 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
      */
     @Override
     public int insertOrderInfo(OrderInfo orderInfo) {
+        //判断是否已经创建 根据亚马逊订单号判断
+        OrderInfo one = this.getOne(new LambdaQueryWrapper<OrderInfo>().eq(OrderInfo::getAmazonOrderId, orderInfo.getAmazonOrderId()));
+        if (StringUtils.isNotNull(one)) {
+            throw new ServiceException("该订单已经存在");
+        }
         if (StringUtils.isNull(orderInfo.getUserName())) {
             orderInfo.setUserName(SecurityUtils.getUsername());
         }
@@ -101,6 +102,12 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
      */
     @Override
     public int updateOrderInfo(OrderInfo orderInfo) {
+        //判断是否已经创建 根据亚马逊订单号判断
+        OrderInfo one = this.getOne(new LambdaQueryWrapper<OrderInfo>().eq(OrderInfo::getAmazonOrderId, orderInfo.getAmazonOrderId()));
+        OrderInfo myOld = this.selectOrderInfoById(orderInfo.getId());
+        if (StringUtils.isNotNull(one) && !myOld.getId().equals(orderInfo.getId())) {
+            throw new ServiceException("该订单已经存在");
+        }
         orderInfo.setUpdateBy(SecurityUtils.getUsername());
         orderInfo.setUpdateTime(DateUtils.getNowDate());
         return orderInfoMapper.updateOrderInfo(orderInfo);
@@ -199,10 +206,45 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
     @Override
     public OrderInfoResponse.Data getOrderInfoByApi(OrderInfoApiQuery orderInfoApiQuery) {
         StoreInfo storeInfo = storeInfoService.selectStoreInfoById(orderInfoApiQuery.getStoreId());
+        if (StringUtils.isNull(storeInfo)) {
+            throw new ServiceException("店铺信息不存在", NO_CONTENT);
+        }
         OrderInfoResponse.Data orderInfo = apiService.getOrderInfo(storeInfo.getStoreId(), orderInfoApiQuery.getAmazonOrderId(), orderInfoApiQuery.getSellerOrderId());
         if (StringUtils.isNull(orderInfo)) {
-            throw new RuntimeException("订单信息不存在");
+            throw new ServiceException("订单信息不存在", NO_CONTENT);
         }
+        return orderInfo;
+    }
+
+    @Override
+    public OrderInfo externalAdd(OrderInfo orderInfo) {
+        //根据Amazon订单号查询订单信息
+        OrderInfo one = this.getOne(new LambdaQueryWrapper<>(OrderInfo.class).eq(OrderInfo::getAmazonOrderId, orderInfo.getAmazonOrderId()));
+        if (StringUtils.isNotNull(one)) {
+            throw new ServiceException("订单信息已存在");
+        }
+        OrderInfoApiQuery orderInfoApiQuery = new OrderInfoApiQuery();
+        StoreInfo storeInfo = storeInfoService.getOne(new LambdaQueryWrapper<>(StoreInfo.class).eq(StoreInfo::getStoreId, orderInfo.getStoreId()));
+        if (StringUtils.isNull(storeInfo)) {
+            throw new ServiceException("店铺信息不存在", NO_CONTENT);
+        }
+        orderInfoApiQuery.setStoreId(storeInfo.getId());
+        orderInfoApiQuery.setAmazonOrderId(orderInfo.getAmazonOrderId());
+        OrderInfoResponse.Data orderInfoByApi = getOrderInfoByApi(orderInfoApiQuery);
+        if (StringUtils.isNull(orderInfoByApi)) {
+            throw new ServiceException("订单信息不存在", NO_CONTENT);
+        }
+        orderInfo.setStoreId(storeInfo.getId());
+        orderInfo.setMarketplaceId(orderInfoByApi.getMarketplaceId());
+        orderInfo.setPurchaseDate(orderInfoByApi.getPurchaseDate());
+        orderInfo.setAsin(orderInfoByApi.getAsin());
+        orderInfo.setTitle(orderInfoByApi.getTitle());
+        orderInfo.setOrderItemId(orderInfoByApi.getOrderItemId());
+        orderInfo.setGoodsLink(orderInfoByApi.getGoodsLink());
+        orderInfo.setSellerOrderId(orderInfoByApi.getSellerOrderId());
+        orderInfo.setUserName("买家提交");
+        orderInfo.setBegEvaluateStatus(BegEvaluateStatusEnum.STATUS_4.getValue());
+        this.insertOrderInfo(orderInfo);
         return orderInfo;
     }
 }

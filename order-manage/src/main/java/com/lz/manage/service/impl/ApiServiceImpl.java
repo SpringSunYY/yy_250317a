@@ -25,6 +25,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -70,7 +71,7 @@ public class ApiServiceImpl implements IApiService {
             throw new RuntimeException("获取token失败");
         }
         TokenResponse.Data data = tokenResponse.getData();
-        redisCache.setCacheObject("token", data.getAccess_token());
+        redisCache.setCacheObject("token", data.getAccess_token(), 60 * 12, TimeUnit.SECONDS);
         return data.getAccess_token();
     }
 
@@ -205,6 +206,7 @@ public class ApiServiceImpl implements IApiService {
                 .execute();
         //打印完整请求
         String command = generateCurlCommand(apiUrl, queryParams, headers, JSONUtil.toJsonStr(bodyParams));
+        System.out.println("response = " + response);
         String responseBody = response.body();
         System.err.println("responseBody" + responseBody);
         OrderInfoResponse orderInfoResponse = JSONObject.parseObject(responseBody, OrderInfoResponse.class);

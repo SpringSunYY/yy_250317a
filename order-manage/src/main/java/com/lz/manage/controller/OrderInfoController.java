@@ -4,8 +4,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 
-import com.lz.manage.model.dto.orderInfo.OrderInfoApiQuery;
+import com.lz.common.exception.ServiceException;
+import com.lz.common.utils.DateUtils;
+import com.lz.common.utils.StringUtils;
+import com.lz.manage.model.dto.orderInfo.*;
 import org.springframework.security.access.prepost.PreAuthorize;
+
 import javax.annotation.Resource;
 
 import org.springframework.validation.annotation.Validated;
@@ -23,9 +27,6 @@ import com.lz.common.core.domain.AjaxResult;
 import com.lz.common.enums.BusinessType;
 import com.lz.manage.model.domain.OrderInfo;
 import com.lz.manage.model.vo.orderInfo.OrderInfoVo;
-import com.lz.manage.model.dto.orderInfo.OrderInfoQuery;
-import com.lz.manage.model.dto.orderInfo.OrderInfoInsert;
-import com.lz.manage.model.dto.orderInfo.OrderInfoEdit;
 import com.lz.manage.service.IOrderInfoService;
 import com.lz.common.utils.poi.ExcelUtil;
 import com.lz.common.core.page.TableDataInfo;
@@ -38,8 +39,7 @@ import com.lz.common.core.page.TableDataInfo;
  */
 @RestController
 @RequestMapping("/manage/orderInfo")
-public class OrderInfoController extends BaseController
-{
+public class OrderInfoController extends BaseController {
     @Resource
     private IOrderInfoService orderInfoService;
 
@@ -48,12 +48,11 @@ public class OrderInfoController extends BaseController
      */
     @PreAuthorize("@ss.hasPermi('manage:orderInfo:list')")
     @GetMapping("/list")
-    public TableDataInfo list(OrderInfoQuery orderInfoQuery)
-    {
+    public TableDataInfo list(OrderInfoQuery orderInfoQuery) {
         OrderInfo orderInfo = OrderInfoQuery.queryToObj(orderInfoQuery);
         startPage();
         List<OrderInfo> list = orderInfoService.selectOrderInfoList(orderInfo);
-        List<OrderInfoVo> listVo= list.stream().map(OrderInfoVo::objToVo).collect(Collectors.toList());
+        List<OrderInfoVo> listVo = list.stream().map(OrderInfoVo::objToVo).collect(Collectors.toList());
         TableDataInfo table = getDataTable(list);
         table.setRows(listVo);
         return table;
@@ -61,8 +60,7 @@ public class OrderInfoController extends BaseController
 
     @PreAuthorize("@ss.hasPermi('manage:orderInfo:add')")
     @GetMapping("/getOrderInfoByApi")
-    public AjaxResult getOrderInfoByApi(@Validated OrderInfoApiQuery orderInfoApiQuery)
-    {
+    public AjaxResult getOrderInfoByApi(@Validated OrderInfoApiQuery orderInfoApiQuery) {
         return success(orderInfoService.getOrderInfoByApi(orderInfoApiQuery));
     }
 
@@ -72,8 +70,7 @@ public class OrderInfoController extends BaseController
     @PreAuthorize("@ss.hasPermi('manage:orderInfo:export')")
     @Log(title = "订单", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
-    public void export(HttpServletResponse response, OrderInfoQuery orderInfoQuery)
-    {
+    public void export(HttpServletResponse response, OrderInfoQuery orderInfoQuery) {
         OrderInfo orderInfo = OrderInfoQuery.queryToObj(orderInfoQuery);
         List<OrderInfo> list = orderInfoService.selectOrderInfoList(orderInfo);
         ExcelUtil<OrderInfo> util = new ExcelUtil<OrderInfo>(OrderInfo.class);
@@ -85,8 +82,7 @@ public class OrderInfoController extends BaseController
      */
     @PreAuthorize("@ss.hasPermi('manage:orderInfo:query')")
     @GetMapping(value = "/{id}")
-    public AjaxResult getInfo(@PathVariable("id") Long id)
-    {
+    public AjaxResult getInfo(@PathVariable("id") Long id) {
         OrderInfo orderInfo = orderInfoService.selectOrderInfoById(id);
         return success(OrderInfoVo.objToVo(orderInfo));
     }
@@ -97,10 +93,28 @@ public class OrderInfoController extends BaseController
     @PreAuthorize("@ss.hasPermi('manage:orderInfo:add')")
     @Log(title = "订单", businessType = BusinessType.INSERT)
     @PostMapping
-    public AjaxResult add(@RequestBody OrderInfoInsert orderInfoInsert)
-    {
+    public AjaxResult add(@RequestBody OrderInfoInsert orderInfoInsert) {
         OrderInfo orderInfo = OrderInfoInsert.insertToObj(orderInfoInsert);
         return toAjax(orderInfoService.insertOrderInfo(orderInfo));
+    }
+
+    /**
+     * 外部接口新增订单
+     */
+    @PostMapping("/external/add")
+    public AjaxResult externalAdd(@RequestBody @Validated OrderInfoAdd orderInfoAdd) {
+        OrderInfo orderInfo = OrderInfoAdd.insertToObj(orderInfoAdd);
+        try {
+            //拿到添加信息的时间戳再设置上去
+            String evaluateTime = orderInfoAdd.getEvaluateTime();
+            String scanTime = orderInfoAdd.getScanTime();
+            //转换为时间
+            orderInfo.setEvaluateTime(DateUtils.getTimeStr(Long.parseLong(evaluateTime)));
+            orderInfo.setScanTime(DateUtils.getTimeStr(Long.parseLong(scanTime)));
+        } catch (NumberFormatException e) {
+            throw new ServiceException("时间搓转换异常");
+        }
+        return success(orderInfoService.externalAdd(orderInfo));
     }
 
     /**
@@ -109,8 +123,7 @@ public class OrderInfoController extends BaseController
     @PreAuthorize("@ss.hasPermi('manage:orderInfo:edit')")
     @Log(title = "订单", businessType = BusinessType.UPDATE)
     @PutMapping
-    public AjaxResult edit(@RequestBody OrderInfoEdit orderInfoEdit)
-    {
+    public AjaxResult edit(@RequestBody OrderInfoEdit orderInfoEdit) {
         OrderInfo orderInfo = OrderInfoEdit.editToObj(orderInfoEdit);
         return toAjax(orderInfoService.updateOrderInfo(orderInfo));
     }
@@ -120,9 +133,8 @@ public class OrderInfoController extends BaseController
      */
     @PreAuthorize("@ss.hasPermi('manage:orderInfo:remove')")
     @Log(title = "订单", businessType = BusinessType.DELETE)
-	@DeleteMapping("/{ids}")
-    public AjaxResult remove(@PathVariable Long[] ids)
-    {
+    @DeleteMapping("/{ids}")
+    public AjaxResult remove(@PathVariable Long[] ids) {
         return toAjax(orderInfoService.deleteOrderInfoByIds(ids));
     }
 }

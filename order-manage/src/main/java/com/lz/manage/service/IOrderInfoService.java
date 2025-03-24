@@ -95,4 +95,15 @@ public interface IOrderInfoService extends IService<OrderInfo> {
      * return: com.lz.manage.model.api.OrderInfoResponse
      **/
     OrderInfoResponse.Data getOrderInfoByApi(OrderInfoApiQuery orderInfoApiQuery);
+
+    /**
+     * description: 外部接口获取添加订单
+     * author: YY
+     * method: externalAdd
+     * date: 2025/3/24 14:55
+     * param:
+     * param: orderInfo
+     * return: com.lz.manage.model.domain.OrderInfo
+     **/
+    OrderInfo externalAdd(OrderInfo orderInfo);
 }

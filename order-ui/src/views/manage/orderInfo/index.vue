@@ -374,7 +374,7 @@
           <el-col :span="12">
             <el-form-item label="卖家订单编号" prop="sellerOrderId">
               <el-input
-                v-model="queryParams.sellerOrderId"
+                v-model="form.sellerOrderId"
                 placeholder="请输入卖家订单编号"
                 clearable
                 @keyup.enter.native="handleQuery"
