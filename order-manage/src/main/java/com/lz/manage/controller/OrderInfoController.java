@@ -101,6 +101,7 @@ public class OrderInfoController extends BaseController {
     /**
      * 外部接口新增订单
      */
+    @PreAuthorize("@sk.hasKey()")
     @PostMapping("/external/add")
     public AjaxResult externalAdd(@RequestBody @Validated OrderInfoAdd orderInfoAdd) {
         OrderInfo orderInfo = OrderInfoAdd.insertToObj(orderInfoAdd);

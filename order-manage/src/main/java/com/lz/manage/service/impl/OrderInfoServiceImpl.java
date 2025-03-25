@@ -70,7 +70,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
     public List<OrderInfo> selectOrderInfoList(OrderInfo orderInfo) {
         List<OrderInfo> orderInfos = orderInfoMapper.selectOrderInfoList(orderInfo);
         for (OrderInfo info : orderInfos) {
-            StoreInfo storeInfo = storeInfoService.selectStoreInfoById(info.getStoreId());
+            StoreInfo storeInfo = storeInfoService.selectStoreInfoByStoreId(info.getStoreId());
             if (StringUtils.isNotNull(storeInfo)) {
                 info.setStoreName(storeInfo.getName());
             }
@@ -210,7 +210,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
     @Override
     public OrderInfo getOrderInfoByApi(OrderInfoApiQuery orderInfoApiQuery) {
         // 1. 获取店铺信息
-        StoreInfo storeInfo = storeInfoService.selectStoreInfoById(orderInfoApiQuery.getStoreId());
+        StoreInfo storeInfo = storeInfoService.selectStoreInfoByStoreId(orderInfoApiQuery.getStoreId());
         if (StringUtils.isNull(storeInfo)) {
             throw new ServiceException("店铺信息不存在", NO_CONTENT);
         }
@@ -228,7 +228,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         // 3. 组装订单基本信息
         OrderInfo orderInfo = new OrderInfo();
         orderInfo.setAmazonOrderId(orderInfoApiQuery.getAmazonOrderId());
-        orderInfo.setStoreId(storeInfo.getId());
+        orderInfo.setStoreId(storeInfo.getStoreId());
         orderInfo.setMarketplaceId(orderInfoByApi.getMarketplaceId());
         orderInfo.setPurchaseDate(orderInfoByApi.getPurchaseDate());
         orderInfo.setAsin(orderInfoByApi.getAsin());
@@ -249,13 +249,13 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         try {
             // 5. 获取并处理 `commodityDetail`
             CommodityDetailResponse.Data commodityDetail = commodityDetailFuture.get();
-            if (commodityDetail != null) {
+            if (StringUtils.isNotNull(commodityDetail)) {
                 orderInfo.setGoodsLink(commodityDetail.getSourceUrls());
             }
 
             // 6. 获取并处理 `reviewData`
             ReviewResponse.Data reviewData = reviewDataFuture.get();
-            if (reviewData != null && reviewData.getRows() != null && !reviewData.getRows().isEmpty()) {
+            if (StringUtils.isNotNull(reviewData) && StringUtils.isNotEmpty(reviewData.getRows())) {
                 ReviewResponse.Data.Review review = reviewData.getRows().get(0);
                 orderInfo.setEvaluateContent(review.getContent()); // 评论内容
                 orderInfo.setEvaluateTime(review.getReviewDate()); // 评论时间
@@ -278,16 +278,16 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
             throw new ServiceException("订单信息已经评价，无需再评价", NOT_MODIFIED);
         }
         OrderInfoApiQuery orderInfoApiQuery = new OrderInfoApiQuery();
-        StoreInfo storeInfo = storeInfoService.getOne(new LambdaQueryWrapper<>(StoreInfo.class).eq(StoreInfo::getStoreId, orderInfo.getStoreId()));
+        StoreInfo storeInfo = storeInfoService.selectStoreInfoByStoreId(orderInfo.getStoreId());
         if (StringUtils.isNull(storeInfo)) {
             throw new ServiceException("店铺信息不存在", NO_CONTENT);
         }
-        orderInfoApiQuery.setStoreId(storeInfo.getId());
+        orderInfoApiQuery.setStoreId(storeInfo.getStoreId());
         orderInfoApiQuery.setAmazonOrderId(orderInfo.getAmazonOrderId());
         orderInfoApiQuery.setSellerOrderId(orderInfo.getSellerOrderId());
         OrderInfo orderInfoByApi = this.getOrderInfoByApi(orderInfoApiQuery);
         //设置初值
-        orderInfo.setStoreId(storeInfo.getId());
+        orderInfo.setStoreId(storeInfo.getStoreId());
         orderInfo.setEvaluateContent(orderInfoByApi.getEvaluateContent()); // 评论内容
         orderInfo.setEvaluateTime(orderInfoByApi.getEvaluateTime()); // 评论时间
         orderInfo.setEvaluateLevel(orderInfoByApi.getEvaluateLevel()); // 星级

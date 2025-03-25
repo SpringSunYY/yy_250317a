@@ -7,6 +7,9 @@ import com.lz.manage.model.dto.storeInfo.StoreInfoQuery;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+
+import javax.validation.constraints.NotBlank;
+
 /**
  * 店铺信息Service接口
  * 
@@ -81,4 +84,6 @@ public interface IStoreInfoService extends IService<StoreInfo>
     List<StoreInfoVo> convertVoList(List<StoreInfo> storeInfoList);
 
     int syncStoreInfo(StoreInfo storeInfo);
+
+    StoreInfo selectStoreInfoByStoreId( String storeId);
 }

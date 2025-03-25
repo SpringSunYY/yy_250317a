@@ -30,7 +30,7 @@ public class CommonTest {
 
     private static final String CLIENT_ID = "367971";
     private static final String CLIENT_SECRET = "df2bac03-1006-4974-89f1-8163162d4910";
-    private static final String ACCESS_TOKEN = "52d72d85-0b08-44c2-8397-eec3e329abef";
+    private static final String ACCESS_TOKEN = "357c819e-3c11-426b-86b0-16c836751da9";
 
     @Test
     public void test() {
@@ -99,8 +99,8 @@ public class CommonTest {
 
         Map<String, Object> bodyParams = new HashMap<>();
 //        bodyParams.put("shopId", "");
-//        bodyParams.put("pageNo", "1");
-//        bodyParams.put("pageSize", "10");
+        bodyParams.put("pageNo", "1");
+        bodyParams.put("pageSize", "100");
         String body = JSONUtil.toJsonStr(bodyParams);
 
         HashMap<String, String> headers = new HashMap<>();

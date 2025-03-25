@@ -360,7 +360,7 @@
                   v-for="item in storeInfoList"
                   :key="item.id"
                   :label="item.name"
-                  :value="item.id"
+                  :value="item.storeId"
                 >
                 </el-option>
               </el-select>

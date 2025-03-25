@@ -355,12 +355,15 @@ export default {
   },
   methods: {
     handleSync() {
+      this.loading = true
       this.$modal.confirm('是否确认同步店铺信息？').then(function() {
         return syncStoreInfo()
       }).then(() => {
         this.getList()
         this.$modal.msgSuccess('同步成功')
       }).catch(() => {
+      }).finally(() => {
+        this.loading = false
       })
     },
     /** 查询店铺信息列表 */

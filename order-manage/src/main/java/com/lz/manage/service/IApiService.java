@@ -34,7 +34,7 @@ public interface IApiService {
      * param:
      * return: java.util.List<com.lz.manage.model.api.StoreInfoResponse>
      **/
-    List<StoreInfoResult> getStoreInfo(Long pageNo, Long pageSize);
+    List<StoreInfoResult> getStoreInfo();
 
     /**
      * description: 获取订单信息

@@ -174,7 +174,7 @@ public class StoreInfoServiceImpl extends ServiceImpl<StoreInfoMapper, StoreInfo
     @Transactional
     @Override
     public int syncStoreInfo(StoreInfo storeInfo) {
-        List<StoreInfoResult> storeInfoList = apiService.getStoreInfo(null, null);
+        List<StoreInfoResult> storeInfoList = apiService.getStoreInfo();
         System.out.println("storeInfoList = " + storeInfoList);
         for (StoreInfoResult storeInfoResult : storeInfoList) {
             System.out.println("storeInfoResult = " + storeInfoResult);
@@ -198,6 +198,11 @@ public class StoreInfoServiceImpl extends ServiceImpl<StoreInfoMapper, StoreInfo
             this.saveOrUpdate(store);
         }
         return 1;
+    }
+
+    @Override
+    public StoreInfo selectStoreInfoByStoreId(String storeId) {
+        return this.getOne(new LambdaQueryWrapper<StoreInfo>().eq(StoreInfo::getStoreId, storeId));
     }
 
 }

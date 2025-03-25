@@ -74,10 +74,11 @@ public class ApiServiceImpl implements IApiService {
     }
 
     @Override
-    public List<StoreInfoResult> getStoreInfo(Long pageNo, Long pageSize) {
+    public List<StoreInfoResult> getStoreInfo() {
         String clientId = configService.selectConfigByKey("clientId");
         String clientSecret = configService.selectConfigByKey("clientSecret");
         String apiUrl = configService.selectConfigByKey("getStoreApi");
+        String pageSize = configService.selectConfigByKey("pageSize");
         if (StringUtils.isEmpty(clientId)
                 || StringUtils.isEmpty(clientSecret)
                 || StringUtils.isEmpty(apiUrl)) {
@@ -108,10 +109,10 @@ public class ApiServiceImpl implements IApiService {
         String fullUrl = HttpUtil.urlWithForm(apiUrl, queryParams, null, true);
 
         Map<String, Object> bodyParams = new HashMap<>();
-        if (StringUtils.isNotNull(pageNo) && StringUtils.isNotNull(pageSize)) {
-            bodyParams.put("pageNo", pageNo);
-            bodyParams.put("pageSize", pageSize);
-        }
+
+        bodyParams.put("pageNo", "1");
+        bodyParams.put("pageSize", pageSize);
+
         String body = JSONUtil.toJsonStr(bodyParams);
 
         HashMap<String, String> headers = new HashMap<>();
@@ -328,6 +329,7 @@ public class ApiServiceImpl implements IApiService {
         String clientId = configService.selectConfigByKey("clientId");
         String clientSecret = configService.selectConfigByKey("clientSecret");
         String apiUrl = configService.selectConfigByKey("getReviewDetailListApi");
+        String pageSize = configService.selectConfigByKey("pageSize");
         if (StringUtils.isEmpty(clientId)
                 || StringUtils.isEmpty(clientSecret)
                 || StringUtils.isEmpty(apiUrl)) {
@@ -362,7 +364,7 @@ public class ApiServiceImpl implements IApiService {
         bodyParams.put("searchType", "amazonOrderId");
         bodyParams.put("searchValue", amazonOrderId);
         bodyParams.put("pageNo", "1");
-        bodyParams.put("pageSize", "20");
+        bodyParams.put("pageSize", pageSize);
 
         HashMap<String, String> headers = new HashMap<>();
         headers.put("Content-Type", "application/json");

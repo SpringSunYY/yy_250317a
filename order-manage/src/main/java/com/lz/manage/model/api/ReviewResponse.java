@@ -32,10 +32,8 @@ public class ReviewResponse {
 
             private String amazonOrderId;
 
-            @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
             private Date reviewDate;
 
-            @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
             private Date updateTime;
 
             private String remark;
