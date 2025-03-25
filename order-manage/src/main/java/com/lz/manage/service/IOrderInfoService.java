@@ -2,7 +2,6 @@ package com.lz.manage.service;
 
 import java.util.List;
 
-import com.lz.manage.model.api.OrderInfoResponse;
 import com.lz.manage.model.domain.OrderInfo;
 import com.lz.manage.model.dto.orderInfo.OrderInfoApiQuery;
 import com.lz.manage.model.vo.orderInfo.OrderInfoVo;
@@ -94,7 +93,7 @@ public interface IOrderInfoService extends IService<OrderInfo> {
      * param: orderInfoApiQuery
      * return: com.lz.manage.model.api.OrderInfoResponse
      **/
-    OrderInfoResponse.Data getOrderInfoByApi(OrderInfoApiQuery orderInfoApiQuery);
+    OrderInfo getOrderInfoByApi(OrderInfoApiQuery orderInfoApiQuery);
 
     /**
      * description: 外部接口获取添加订单

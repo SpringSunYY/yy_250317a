@@ -1,10 +1,8 @@
 package com.lz.manage.model.api;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonInclude;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 @lombok.Data
@@ -24,7 +22,7 @@ public class ReviewResponse {
             private String asin;
             private String parentAsin;
             private String asinUrl;
-            private int star;
+            private String star;
             private String title;
             private String content;
             private String contentUrl;
@@ -32,14 +30,13 @@ public class ReviewResponse {
             private String marketplaceName;
             private String reviewId;
 
-            @JsonInclude(JsonInclude.Include.NON_NULL)
             private String amazonOrderId;
 
-            @JsonFormat(pattern = "yyyy-MM-dd")
-            private LocalDate reviewDate;
+            @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+            private Date reviewDate;
 
             @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-            private LocalDateTime updateTime;
+            private Date updateTime;
 
             private String remark;
             private int reviewStatus;

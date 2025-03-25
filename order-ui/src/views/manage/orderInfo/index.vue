@@ -699,7 +699,12 @@ export default {
         this.form.asin = res?.data?.asin
         this.form.title = res?.data?.title
         this.form.orderItemId = res?.data?.orderItemId
-        this.form.sellOrderId = res?.data?.sellerOrderId
+        this.form.sellerOrderId = res?.data?.sellerOrderId
+        this.form.goodsLink= res?.data?.goodsLink
+        this.form.evaluateContent= res?.data?.evaluateContent
+        this.form.evaluateTime= res?.data?.evaluateTime
+        this.form.evaluateLevel=res?.data?.evaluateLevel
+        this.form.comment= res?.data?.comment
         this.$modal.msgSuccess('获取成功')
       }).finally(() => {
         this.getOrderLoading = false

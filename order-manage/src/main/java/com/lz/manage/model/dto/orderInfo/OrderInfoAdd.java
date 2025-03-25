@@ -39,19 +39,6 @@ public class OrderInfoAdd implements Serializable {
     @NotEmpty(message = "evaluateTime亚马逊评价时间不能为空")
     private String evaluateTime;
 
-    /**
-     * 亚马逊评分星级
-     */
-    @NotEmpty(message = "evaluateLevel亚马逊评分星级不能为空")
-    private String evaluateLevel;
-
-    /**
-     * 亚马逊评价内容
-     */
-    @NotEmpty(message = "evaluateContent亚马逊评价内容不能为空")
-    private String evaluateContent;
-
-
 
     /**
      * 扫码时间
@@ -84,7 +71,7 @@ public class OrderInfoAdd implements Serializable {
     private String buyerEvaluate;
 
     /**
-     * 请求评论状态 (1"" 2请求中 3长时未回复 4疫情求成)
+     * 请求评论状态 (1"" 2请求中 3长时未回复 4请求完成)
      */
     private String begEvaluateStatus;
 

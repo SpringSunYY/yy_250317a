@@ -204,12 +204,12 @@ public class ApiServiceImpl implements IApiService {
                 .execute();
         //打印完整请求
         String command = generateCurlCommand(apiUrl, queryParams, headers, JSONUtil.toJsonStr(bodyParams));
-        System.out.println("response = " + response);
+        System.out.println("207getOrderInfo response = " + response);
         String responseBody = response.body();
-        System.err.println("responseBody" + responseBody);
+        System.err.println("201getOrderInfo responseBody" + responseBody);
         OrderInfoResponse orderInfoResponse = JSONObject.parseObject(responseBody, OrderInfoResponse.class);
-        System.out.println("orderInfoResponse = " + orderInfoResponse);
-        System.err.println("response = " + response);
+        System.out.println("211getOrderInfo orderInfoResponse = " + orderInfoResponse);
+        System.err.println("212getOrderInfo response = " + response);
         System.out.println(command);
 
         if (orderInfoResponse.getCode().equals("40001") || orderInfoResponse.getMsg().equals("access_token 失效")) {
@@ -224,7 +224,6 @@ public class ApiServiceImpl implements IApiService {
         }
 
         OrderInfoResponse.Data data = orderInfoResponse.getData();
-        System.out.println("data = " + data);
         if (StringUtils.isNull(data)) {
             return new OrderInfoResponse.Data();
         }
@@ -236,15 +235,13 @@ public class ApiServiceImpl implements IApiService {
             data.setTitle(orderItem.getTitle());
             data.setOrderItemId(orderItem.getOrderItemId());
         }
-        System.out.println("orderItemVoList = " + orderItemVoList);
-        CommodityDetailResponse.Data commodityDetail = getCommodityDetail(data.getOrderItemId());
-        if (StringUtils.isNotNull(commodityDetail)) {
-            data.setGoodsLink(commodityDetail.getSourceUrls());
-        }
+        System.out.println("238getOrderInfo orderItemVoList = " + orderItemVoList);
+        System.out.println("239getOrderInfo data = " + data);
         return data;
 
     }
 
+    @Override
     public CommodityDetailResponse.Data getCommodityDetail(String id) {
         if (StringUtils.isEmpty(id)) {
             id = "";
@@ -296,10 +293,10 @@ public class ApiServiceImpl implements IApiService {
         //打印完整请求
         String command = generateCurlCommand(apiUrl, queryParams, headers, JSONUtil.toJsonStr(bodyParams));
         String responseBody = response.body();
-        System.err.println("responseBody" + responseBody);
+        System.err.println("296getCommodityDetail responseBody" + responseBody);
         CommodityDetailResponse detailResponse = JSONObject.parseObject(responseBody, CommodityDetailResponse.class);
-        System.out.println("detailResponse = " + detailResponse);
-        System.err.println("response = " + response);
+        System.out.println("298getCommodityDetail detailResponse = " + detailResponse);
+        System.err.println("299getCommodityDetail response = " + response);
         System.out.println(command);
 
         if (detailResponse.getCode().equals("40001") || detailResponse.getMsg().equals("access_token 失效")) {
@@ -323,6 +320,7 @@ public class ApiServiceImpl implements IApiService {
         return data;
     }
 
+    @Override
     public ReviewResponse.Data getReviewDetailList(String amazonOrderId) {
         if (StringUtils.isEmpty(amazonOrderId)) {
             amazonOrderId = "";
@@ -350,7 +348,7 @@ public class ApiServiceImpl implements IApiService {
             log.error("生成签名失败！！！", e);
         }
         Map<String, Object> queryParams = new HashMap<>();
-        queryParams.put("access_token", queryParams);
+        queryParams.put("access_token", token);
         queryParams.put("client_id", clientId);
         queryParams.put("nonce", nonce);
         queryParams.put("timestamp", timestamp);
@@ -368,8 +366,9 @@ public class ApiServiceImpl implements IApiService {
 
         HashMap<String, String> headers = new HashMap<>();
         headers.put("Content-Type", "application/json");
-
-        HttpResponse response = HttpRequest.post(apiUrl)
+        //拼接url
+        String fullUrl = HttpUtil.urlWithForm(apiUrl, queryParams, null, true);
+        HttpResponse response = HttpRequest.post(fullUrl)
                 .header("Content-Type", "application/json")
                 .body(JSONUtil.toJsonStr(bodyParams))
                 .timeout(5000)
@@ -377,10 +376,10 @@ public class ApiServiceImpl implements IApiService {
         //打印完整请求
         String command = generateCurlCommand(apiUrl, queryParams, headers, JSONUtil.toJsonStr(bodyParams));
         String responseBody = response.body();
-        System.err.println("responseBody" + responseBody);
+        System.err.println("378getReviewDetailList responseBody" + responseBody);
         ReviewResponse reviewResponse = JSONObject.parseObject(responseBody, ReviewResponse.class);
-        System.out.println("reviewResponse = " + reviewResponse);
-        System.err.println("response = " + response);
+        System.out.println("380getReviewDetailList reviewResponse = " + reviewResponse);
+        System.err.println("381getReviewDetailList response = " + response);
         System.out.println(command);
 
         if (reviewResponse.getCode().equals("40001") || reviewResponse.getMsg().equals("access_token 失效")) {
@@ -402,6 +401,7 @@ public class ApiServiceImpl implements IApiService {
             log.info("商品评论信息为空");
             return new ReviewResponse.Data();
         }
+        System.out.println("403getReviewDetailList data = " + data);
         return data;
     }
 

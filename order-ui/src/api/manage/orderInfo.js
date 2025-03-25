@@ -13,7 +13,8 @@ export function getOrderInfoByApi(query) {
   return request({
     url: '/manage/orderInfo/getOrderInfoByApi',
     method: 'get',
-    params: query
+    params: query,
+    timeout: 3000000
   })
 }
 

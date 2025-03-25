@@ -8,12 +8,13 @@ import com.lz.common.utils.DateUtils;
 import com.lz.common.utils.SecurityUtils;
 import com.lz.common.utils.StringUtils;
 import com.lz.manage.mapper.OrderInfoMapper;
+import com.lz.manage.model.api.CommodityDetailResponse;
 import com.lz.manage.model.api.OrderInfoResponse;
+import com.lz.manage.model.api.ReviewResponse;
 import com.lz.manage.model.domain.OrderInfo;
 import com.lz.manage.model.domain.StoreInfo;
 import com.lz.manage.model.dto.orderInfo.OrderInfoApiQuery;
 import com.lz.manage.model.dto.orderInfo.OrderInfoQuery;
-import com.lz.manage.model.enmus.BegEvaluateStatusEnum;
 import com.lz.manage.model.vo.orderInfo.OrderInfoVo;
 import com.lz.manage.service.IApiService;
 import com.lz.manage.service.IOrderInfoService;
@@ -22,8 +23,11 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
+import static com.lz.common.constant.HttpStatus.NOT_MODIFIED;
 import static com.lz.common.constant.HttpStatus.NO_CONTENT;
 
 /**
@@ -204,36 +208,26 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
     }
 
     @Override
-    public OrderInfoResponse.Data getOrderInfoByApi(OrderInfoApiQuery orderInfoApiQuery) {
+    public OrderInfo getOrderInfoByApi(OrderInfoApiQuery orderInfoApiQuery) {
+        // 1. 获取店铺信息
         StoreInfo storeInfo = storeInfoService.selectStoreInfoById(orderInfoApiQuery.getStoreId());
         if (StringUtils.isNull(storeInfo)) {
             throw new ServiceException("店铺信息不存在", NO_CONTENT);
         }
-        OrderInfoResponse.Data orderInfo = apiService.getOrderInfo(storeInfo.getStoreId(), orderInfoApiQuery.getAmazonOrderId(), orderInfoApiQuery.getSellerOrderId());
-        if (StringUtils.isNull(orderInfo)) {
-            throw new ServiceException("订单信息不存在", NO_CONTENT);
-        }
-        return orderInfo;
-    }
 
-    @Override
-    public OrderInfo externalAdd(OrderInfo orderInfo) {
-        //根据Amazon订单号查询订单信息
-        OrderInfo one = this.getOne(new LambdaQueryWrapper<>(OrderInfo.class).eq(OrderInfo::getAmazonOrderId, orderInfo.getAmazonOrderId()));
-        if (StringUtils.isNotNull(one)) {
-            throw new ServiceException("订单信息已存在");
-        }
-        OrderInfoApiQuery orderInfoApiQuery = new OrderInfoApiQuery();
-        StoreInfo storeInfo = storeInfoService.getOne(new LambdaQueryWrapper<>(StoreInfo.class).eq(StoreInfo::getStoreId, orderInfo.getStoreId()));
-        if (StringUtils.isNull(storeInfo)) {
-            throw new ServiceException("店铺信息不存在", NO_CONTENT);
-        }
-        orderInfoApiQuery.setStoreId(storeInfo.getId());
-        orderInfoApiQuery.setAmazonOrderId(orderInfo.getAmazonOrderId());
-        OrderInfoResponse.Data orderInfoByApi = getOrderInfoByApi(orderInfoApiQuery);
+        // 2. 获取订单信息
+        OrderInfoResponse.Data orderInfoByApi = apiService.getOrderInfo(
+                storeInfo.getStoreId(),
+                orderInfoApiQuery.getAmazonOrderId(),
+                orderInfoApiQuery.getSellerOrderId()
+        );
         if (StringUtils.isNull(orderInfoByApi)) {
             throw new ServiceException("订单信息不存在", NO_CONTENT);
         }
+        System.out.println("227getOrderInfoByApi orderInfoByApi = " + orderInfoByApi);
+        // 3. 组装订单基本信息
+        OrderInfo orderInfo = new OrderInfo();
+        orderInfo.setAmazonOrderId(orderInfoApiQuery.getAmazonOrderId());
         orderInfo.setStoreId(storeInfo.getId());
         orderInfo.setMarketplaceId(orderInfoByApi.getMarketplaceId());
         orderInfo.setPurchaseDate(orderInfoByApi.getPurchaseDate());
@@ -242,8 +236,70 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         orderInfo.setOrderItemId(orderInfoByApi.getOrderItemId());
         orderInfo.setGoodsLink(orderInfoByApi.getGoodsLink());
         orderInfo.setSellerOrderId(orderInfoByApi.getSellerOrderId());
-        orderInfo.setUserName("买家提交");
-        orderInfo.setBegEvaluateStatus(BegEvaluateStatusEnum.STATUS_4.getValue());
+
+        // 4. 并行调用 `getCommodityDetail` 和 `getReviewDetailList`
+        CompletableFuture<CommodityDetailResponse.Data> commodityDetailFuture = CompletableFuture.supplyAsync(() ->
+                apiService.getCommodityDetail(orderInfo.getOrderItemId())
+        );
+
+        CompletableFuture<ReviewResponse.Data> reviewDataFuture = CompletableFuture.supplyAsync(() ->
+                apiService.getReviewDetailList(orderInfo.getAmazonOrderId())
+        );
+
+        try {
+            // 5. 获取并处理 `commodityDetail`
+            CommodityDetailResponse.Data commodityDetail = commodityDetailFuture.get();
+            if (commodityDetail != null) {
+                orderInfo.setGoodsLink(commodityDetail.getSourceUrls());
+            }
+
+            // 6. 获取并处理 `reviewData`
+            ReviewResponse.Data reviewData = reviewDataFuture.get();
+            if (reviewData != null && reviewData.getRows() != null && !reviewData.getRows().isEmpty()) {
+                ReviewResponse.Data.Review review = reviewData.getRows().get(0);
+                orderInfo.setEvaluateContent(review.getContent()); // 评论内容
+                orderInfo.setEvaluateTime(review.getReviewDate()); // 评论时间
+                orderInfo.setEvaluateLevel(review.getStar()); // 星级
+                orderInfo.setComment(review.getContentUrl()); // 评论链接
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            log.error("获取订单信息失败", e);
+            return orderInfo;
+        }
+        System.out.println("270getOrderInfoByApi orderInfo = " + orderInfo);
+        return orderInfo;
+    }
+
+    @Override
+    public OrderInfo externalAdd(OrderInfo orderInfo) {
+        //根据Amazon订单号查询订单信息
+        OrderInfo one = this.getOne(new LambdaQueryWrapper<>(OrderInfo.class).eq(OrderInfo::getAmazonOrderId, orderInfo.getAmazonOrderId()));
+        if (StringUtils.isNotNull(one)) {
+            throw new ServiceException("订单信息已经评价，无需再评价", NOT_MODIFIED);
+        }
+        OrderInfoApiQuery orderInfoApiQuery = new OrderInfoApiQuery();
+        StoreInfo storeInfo = storeInfoService.getOne(new LambdaQueryWrapper<>(StoreInfo.class).eq(StoreInfo::getStoreId, orderInfo.getStoreId()));
+        if (StringUtils.isNull(storeInfo)) {
+            throw new ServiceException("店铺信息不存在", NO_CONTENT);
+        }
+        orderInfoApiQuery.setStoreId(storeInfo.getId());
+        orderInfoApiQuery.setAmazonOrderId(orderInfo.getAmazonOrderId());
+        orderInfoApiQuery.setSellerOrderId(orderInfo.getSellerOrderId());
+        OrderInfo orderInfoByApi = this.getOrderInfoByApi(orderInfoApiQuery);
+        //设置初值
+        orderInfo.setEvaluateContent(orderInfoByApi.getEvaluateContent()); // 评论内容
+        orderInfo.setEvaluateTime(orderInfoByApi.getEvaluateTime()); // 评论时间
+        orderInfo.setEvaluateLevel(orderInfoByApi.getEvaluateLevel()); // 星级
+        orderInfo.setComment(orderInfoByApi.getComment()); // 评论链接
+        orderInfo.setMarketplaceId(orderInfoByApi.getMarketplaceId());
+        orderInfo.setGoodsLink(orderInfoByApi.getGoodsLink());
+        orderInfo.setPurchaseDate(orderInfoByApi.getPurchaseDate());
+        orderInfo.setAsin(orderInfoByApi.getAsin());
+        orderInfo.setTitle(orderInfoByApi.getTitle());
+        orderInfo.setOrderItemId(orderInfoByApi.getOrderItemId());
+        orderInfo.setGoodsLink(orderInfoByApi.getGoodsLink());
+        orderInfo.setSellerOrderId(orderInfoByApi.getSellerOrderId());
+        orderInfo.setUserName("用户创建");
         this.insertOrderInfo(orderInfo);
         return orderInfo;
     }
