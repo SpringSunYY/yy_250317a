@@ -287,6 +287,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         orderInfoApiQuery.setSellerOrderId(orderInfo.getSellerOrderId());
         OrderInfo orderInfoByApi = this.getOrderInfoByApi(orderInfoApiQuery);
         //设置初值
+        orderInfo.setStoreId(storeInfo.getId());
         orderInfo.setEvaluateContent(orderInfoByApi.getEvaluateContent()); // 评论内容
         orderInfo.setEvaluateTime(orderInfoByApi.getEvaluateTime()); // 评论时间
         orderInfo.setEvaluateLevel(orderInfoByApi.getEvaluateLevel()); // 星级
