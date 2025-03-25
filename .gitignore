@@ -46,3 +46,4 @@ nbdist/
 !*/build/*.html
 !*/build/*.xml
 /ruoyi-test/
+/临时文件/

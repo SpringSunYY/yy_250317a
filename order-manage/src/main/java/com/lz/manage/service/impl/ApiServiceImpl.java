@@ -1,5 +1,6 @@
 package com.lz.manage.service.impl;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
@@ -9,10 +10,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.lz.common.core.redis.RedisCache;
 import com.lz.common.exception.ServiceException;
 import com.lz.common.utils.StringUtils;
-import com.lz.manage.model.api.CommodityDetailResponse;
-import com.lz.manage.model.api.OrderInfoResponse;
-import com.lz.manage.model.api.StoreInfoResponse;
-import com.lz.manage.model.api.TokenResponse;
+import com.lz.manage.model.api.*;
 import com.lz.manage.model.dto.storeInfo.StoreInfoResult;
 import com.lz.manage.service.IApiService;
 import com.lz.system.service.ISysConfigService;
@@ -323,7 +321,88 @@ public class ApiServiceImpl implements IApiService {
             return new CommodityDetailResponse.Data();
         }
         return data;
+    }
 
+    public ReviewResponse.Data getReviewDetailList(String amazonOrderId) {
+        if (StringUtils.isEmpty(amazonOrderId)) {
+            amazonOrderId = "";
+        }
+        String clientId = configService.selectConfigByKey("clientId");
+        String clientSecret = configService.selectConfigByKey("clientSecret");
+        String apiUrl = configService.selectConfigByKey("getReviewDetailListApi");
+        if (StringUtils.isEmpty(clientId)
+                || StringUtils.isEmpty(clientSecret)
+                || StringUtils.isEmpty(apiUrl)) {
+            throw new RuntimeException("请先配置clientId,clientSecret以及获取评论接口");
+        }
+        //获取token
+        String token = redisCache.getCacheObject("token");
+        if (StringUtils.isEmpty(token)) {
+            token = getToken();
+        }
+
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String nonce = String.valueOf(new Random().nextInt(100000));
+        String sign = null;
+        try {
+            sign = generateSign("/api/review/pageDetailList.json", "post", token, clientId, timestamp, nonce, clientSecret);
+        } catch (Exception e) {
+            log.error("生成签名失败！！！", e);
+        }
+        Map<String, Object> queryParams = new HashMap<>();
+        queryParams.put("access_token", queryParams);
+        queryParams.put("client_id", clientId);
+        queryParams.put("nonce", nonce);
+        queryParams.put("timestamp", timestamp);
+        queryParams.put("sign", sign);
+        Map<String, Object> bodyParams = new HashMap<>();
+        //开始时间，一年前，结束时间今天
+        bodyParams.put("startDate", DateUtil.format(DateUtil.offsetDay(DateUtil.date(), -365), "yyyy-MM-dd"));
+        bodyParams.put("endDate", DateUtil.format(DateUtil.date(), "yyyy-MM-dd"));
+        //店铺ID，订单号
+//        bodyParams.put("shopIdList", Arrays.asList("284413"));
+        bodyParams.put("searchType", "amazonOrderId");
+        bodyParams.put("searchValue", amazonOrderId);
+        bodyParams.put("pageNo", "1");
+        bodyParams.put("pageSize", "20");
+
+        HashMap<String, String> headers = new HashMap<>();
+        headers.put("Content-Type", "application/json");
+
+        HttpResponse response = HttpRequest.post(apiUrl)
+                .header("Content-Type", "application/json")
+                .body(JSONUtil.toJsonStr(bodyParams))
+                .timeout(5000)
+                .execute();
+        //打印完整请求
+        String command = generateCurlCommand(apiUrl, queryParams, headers, JSONUtil.toJsonStr(bodyParams));
+        String responseBody = response.body();
+        System.err.println("responseBody" + responseBody);
+        ReviewResponse reviewResponse = JSONObject.parseObject(responseBody, ReviewResponse.class);
+        System.out.println("reviewResponse = " + reviewResponse);
+        System.err.println("response = " + response);
+        System.out.println(command);
+
+        if (reviewResponse.getCode().equals("40001") || reviewResponse.getMsg().equals("access_token 失效")) {
+            getToken();
+            throw new ServiceException("access_token 失效，正在重新获取token,请重新操作", 40001);
+        }
+        if (!reviewResponse.getCode().equals("0")) {
+//            throw new RuntimeException("获取商品信息失败");
+            log.error("获取商品评论信息失败");
+            return new ReviewResponse.Data();
+        }
+        if (!response.isOk()) {
+//            throw new RuntimeException("获取商品信息失败");
+            log.error("获取商品评论信息失败");
+            return new ReviewResponse.Data();
+        }
+        ReviewResponse.Data data = reviewResponse.getData();
+        if (StringUtils.isNull(data)) {
+            log.info("商品评论信息为空");
+            return new ReviewResponse.Data();
+        }
+        return data;
     }
 
     private String generateCurlCommand(String url, Map<String, Object> queryParams, Map<String, String> headers, String body) {

@@ -1,5 +1,6 @@
 package com.lz.test;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
@@ -260,6 +261,75 @@ public class CommonTest {
         }
     }
 
+
+    /*
+    获取评价明细列表 POST /api/review/pageDetailList.json
+    请求参数
+        Query 参数
+        access_token string 必需 通过获取token接口获得的token，详见 获取 Access Token 默认值:{{access_token}}
+        client_id string 必需 client_id, 获取方式详见 申请API权限 默认值:{{client_id}}
+        timestamp string 必需 13位毫秒时间戳，与当前时间差异不超过正负15分钟，示例：1668153260508 默认值:121212
+        nonce string 必需 随机整数值，保证每个请求唯一，示例：11251 默认值:121212
+        sign string 必需 请求签名，详见 生成sign（签名）默认值:121212121
+        Header 参数 Content-Type string 可选
+        固定再header位置加入Content-Type:application/json
+        默认值:application/json
+        Body 参数 application/json
+        marketplaceIdList array[string] 站点ID 可选
+        shopIdList array[string] 店铺id 可选
+        starList array[string] 可选 星级，传整数值(1至5)
+        imageAndVideo string 可选 是否为图片或视频评论(0:全部评论[默认]，1:图片或视频评论)
+        dateType string 可选 筛选的日期类型(reviewDate:评价时间[默认]，updateTime:更新时间)
+        startDate string 开始时间 必需 示例值: 2023-01-01
+        endDate string 必需 结束时间，时间范围不能超过1年 示例值: 2023-02-01
+        matchStateList array[string] 可选 匹配状态(1:自动匹配，2:手动匹配，3:未匹配)
+        searchType enum<string> 可选 搜索类型(asin:按ASIN[默认]，parentAsin:父ASIN，remark:备注搜索，buyer:买家信息，amazonOrderId:订单号，reviewID:按reviewID) 枚举值: asin parentAsin remark buyer amazonOrderId reviewID
+        searchValue string 可选 搜索的内容,多个用%±%拼接
+        pageNo string  第几页 可选
+        pageSize string 每页大小 可选
+        reviewerTypeList array[string] 可选 买家标识，传整数值(0:直评，1:VP，2:VN)
+        statusList array[string] 可选 处理状态(0:待处理，1:处理中，2:已处理)
+        reviewStatusList array[string] 可选 评论状态(0:无变动，1:已更新，2:已删除) 示例
+     */
+    @Test
+    public void getReviewDetailList() throws Exception {
+        String url = "https://openapi.sellfox.com/api/review/pageDetailList.json";
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String nonce = String.valueOf(new Random().nextInt(100000));
+        String sign = generateSign("/api/review/pageDetailList.json", "post", ACCESS_TOKEN, CLIENT_ID, timestamp, nonce, CLIENT_SECRET);
+        Map<String, Object> queryParams = new HashMap<>();
+        queryParams.put("access_token", ACCESS_TOKEN);
+        queryParams.put("client_id", CLIENT_ID);
+        queryParams.put("nonce", nonce);
+        queryParams.put("timestamp", timestamp);
+        queryParams.put("sign", sign);
+        Map<String, Object> bodyParams = new HashMap<>();
+        //开始时间，一年前，结束时间今天
+        bodyParams.put("startDate", DateUtil.format(DateUtil.offsetDay(DateUtil.date(), -365), "yyyy-MM-dd"));
+        bodyParams.put("endDate", DateUtil.format(DateUtil.date(), "yyyy-MM-dd"));
+        //店铺ID，订单号
+//        bodyParams.put("shopIdList", Arrays.asList("284413"));
+        bodyParams.put("searchType", "amazonOrderId");
+        bodyParams.put("searchValue", "112-4802775-1444225");
+        bodyParams.put("pageNo", "1");
+        bodyParams.put("pageSize", "20");
+
+        HashMap<String, String> headers = new HashMap<>();
+        headers.put("Content-Type", "application/json");
+        try {
+            HttpResponse response = HttpRequest.post(url)
+                    .header("Content-Type", "application/json")
+                    .body(JSONUtil.toJsonStr(bodyParams))
+                    .timeout(5000)
+                    .execute();
+            //打印完整请求
+            String command = generateCurlCommand(url, queryParams, headers, JSONUtil.toJsonStr(bodyParams));
+            System.out.println(command);
+        }catch (Exception e) {
+            System.err.println("请求异常: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 
     private static String generateCurlCommand(String url, Map<String, Object> queryParams, Map<String, String> headers, String body) {
         StringBuilder curlCommand = new StringBuilder("curl -X POST ");
