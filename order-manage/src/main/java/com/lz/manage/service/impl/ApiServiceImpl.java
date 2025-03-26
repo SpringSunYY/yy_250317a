@@ -235,6 +235,7 @@ public class ApiServiceImpl implements IApiService {
             data.setAsin(orderItem.getAsin());
             data.setTitle(orderItem.getTitle());
             data.setOrderItemId(orderItem.getOrderItemId());
+            data.setGoodsLink(orderItem.getAsinUrl());
         }
         System.out.println("238getOrderInfo orderItemVoList = " + orderItemVoList);
         System.out.println("239getOrderInfo data = " + data);

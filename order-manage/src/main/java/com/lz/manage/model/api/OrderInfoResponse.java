@@ -81,5 +81,6 @@ public class OrderInfoResponse implements Serializable {
         private String title;
         private String asin;
         private String orderItemId;
+        private String asinUrl;
     }
 }

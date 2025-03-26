@@ -249,7 +249,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         try {
             // 5. 获取并处理 `commodityDetail`
             CommodityDetailResponse.Data commodityDetail = commodityDetailFuture.get();
-            if (StringUtils.isNotNull(commodityDetail)) {
+            if (StringUtils.isNotNull(commodityDetail) && StringUtils.isNotEmpty(commodityDetail.getSourceUrls())) {
                 orderInfo.setGoodsLink(commodityDetail.getSourceUrls());
             }
 

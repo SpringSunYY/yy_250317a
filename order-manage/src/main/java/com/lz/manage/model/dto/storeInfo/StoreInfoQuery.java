@@ -25,6 +25,9 @@ public class StoreInfoQuery implements Serializable
     /** 唯一标识 */
     private String id;
 
+    /**
+     * 店铺ID
+     */
     private String storeId;
 
     /** 店铺名称 */

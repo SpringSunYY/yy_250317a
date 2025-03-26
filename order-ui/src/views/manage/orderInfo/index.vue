@@ -1,14 +1,14 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="编号" prop="id">
-        <el-input
-          v-model="queryParams.id"
-          placeholder="请输入编号"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
+<!--      <el-form-item label="编号" prop="id">-->
+<!--        <el-input-->
+<!--          v-model="queryParams.id"-->
+<!--          placeholder="请输入编号"-->
+<!--          clearable-->
+<!--          @keyup.enter.native="handleQuery"-->
+<!--        />-->
+<!--      </el-form-item>-->
       <el-form-item label="平台" prop="platform">
         <el-input
           v-model="queryParams.platform"
@@ -60,14 +60,14 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="商品编号" prop="orderItemId">
-        <el-input
-          v-model="queryParams.orderItemId"
-          placeholder="请输入亚马逊商品编号"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
+<!--      <el-form-item label="商品编号" prop="orderItemId">-->
+<!--        <el-input-->
+<!--          v-model="queryParams.orderItemId"-->
+<!--          placeholder="请输入亚马逊商品编号"-->
+<!--          clearable-->
+<!--          @keyup.enter.native="handleQuery"-->
+<!--        />-->
+<!--      </el-form-item>-->
       <el-form-item label="订购时间" prop="purchaseDate">
         <el-input
           v-model="queryParams.purchaseDate"
@@ -165,17 +165,17 @@
     </el-form>
 
     <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
-        <el-button
-          type="primary"
-          plain
-          icon="el-icon-plus"
-          size="mini"
-          @click="handleAdd"
-          v-hasPermi="['manage:orderInfo:add']"
-        >新增
-        </el-button>
-      </el-col>
+<!--      <el-col :span="1.5">-->
+<!--        <el-button-->
+<!--          type="primary"-->
+<!--          plain-->
+<!--          icon="el-icon-plus"-->
+<!--          size="mini"-->
+<!--          @click="handleAdd"-->
+<!--          v-hasPermi="['manage:orderInfo:add']"-->
+<!--        >新增-->
+<!--        </el-button>-->
+<!--      </el-col>-->
       <el-col :span="1.5">
         <el-button
           type="success"
@@ -253,7 +253,7 @@
       <el-table-column label="亚马逊评价内容" :show-overflow-tooltip="true" align="center" v-if="columns[12].visible"
                        prop="evaluateContent"
       />
-      <el-table-column label="亚马逊商品链接" :show-overflow-tooltip="true" align="center" v-if="columns[13].visible"
+      <el-table-column label="商品链接" :show-overflow-tooltip="true" align="center" v-if="columns[13].visible"
                        prop="goodsLink"
       />
       <el-table-column label="亚马逊商品编号" :show-overflow-tooltip="true" align="center" v-if="columns[14].visible"
@@ -561,7 +561,7 @@ export default {
         { key: 1, label: '平台', visible: true },
         { key: 2, label: '店铺', visible: true },
         { key: 3, label: '站点', visible: true },
-        { key: 4, label: '卖家订单编号', visible: true },
+        { key: 4, label: '卖家订单编号', visible: false },
         { key: 5, label: '订单号', visible: true },
         { key: 6, label: '订购时间', visible: true },
         { key: 7, label: 'ASIN', visible: true },
