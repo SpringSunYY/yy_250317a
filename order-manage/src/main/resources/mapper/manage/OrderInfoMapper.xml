@@ -85,7 +85,7 @@
                 #{amazonOrderId}, '%')
             </if>
             <if test="params.beginPurchaseDate != null and params.beginPurchaseDate != '' and params.endPurchaseDate != null and params.endPurchaseDate != ''">
-                and purchase_date between #{params.beginPurchaseDate} and #{params.endPurchaseDate}
+                and DATE_FORMAT(purchase_date, '%Y-%m-%d') between #{params.beginPurchaseDate} and #{params.endPurchaseDate}
             </if>
             <if test="orderItemId != null  and orderItemId != ''">and order_item_id like concat('%', #{orderItemId},
                 '%')
@@ -93,7 +93,7 @@
             <if test="asin != null  and asin != ''">and asin like concat('%', #{asin}, '%')</if>
             <if test="title != null  and title != ''">and title like concat('%', #{title}, '%')</if>
             <if test="params.beginScanTime != null and params.beginScanTime != '' and params.endScanTime != null and params.endScanTime != ''">
-                and scan_time between #{params.beginScanTime} and #{params.endScanTime}
+                and DATE_FORMAT(scan_time, '%Y-%m-%d') between #{params.beginScanTime} and #{params.endScanTime}
             </if>
             <if test="buyerName != null  and buyerName != ''">and buyer_name like concat('%', #{buyerName}, '%')</if>
             <if test="buyerEmail != null  and buyerEmail != ''">and buyer_email = #{buyerEmail}</if>
@@ -105,7 +105,7 @@
             </if>
             <if test="afterSaleSign != null  and afterSaleSign != ''">and after_sale_sign = #{afterSaleSign}</if>
             <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''">
-                and create_time between #{params.beginCreateTime} and #{params.endCreateTime}
+                and DATE_FORMAT(create_time, '%Y-%m-%d') between #{params.beginCreateTime} and #{params.endCreateTime}
             </if>
             <if test="remark != null  and remark != ''">and remark = #{remark}</if>
         </where>

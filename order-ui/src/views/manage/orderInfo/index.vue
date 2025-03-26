@@ -1,14 +1,14 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-<!--      <el-form-item label="编号" prop="id">-->
-<!--        <el-input-->
-<!--          v-model="queryParams.id"-->
-<!--          placeholder="请输入编号"-->
-<!--          clearable-->
-<!--          @keyup.enter.native="handleQuery"-->
-<!--        />-->
-<!--      </el-form-item>-->
+      <!--      <el-form-item label="编号" prop="id">-->
+      <!--        <el-input-->
+      <!--          v-model="queryParams.id"-->
+      <!--          placeholder="请输入编号"-->
+      <!--          clearable-->
+      <!--          @keyup.enter.native="handleQuery"-->
+      <!--        />-->
+      <!--      </el-form-item>-->
       <el-form-item label="平台" prop="platform">
         <el-input
           v-model="queryParams.platform"
@@ -60,21 +60,24 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-<!--      <el-form-item label="商品编号" prop="orderItemId">-->
-<!--        <el-input-->
-<!--          v-model="queryParams.orderItemId"-->
-<!--          placeholder="请输入亚马逊商品编号"-->
-<!--          clearable-->
-<!--          @keyup.enter.native="handleQuery"-->
-<!--        />-->
-<!--      </el-form-item>-->
-      <el-form-item label="订购时间" prop="purchaseDate">
-        <el-input
-          v-model="queryParams.purchaseDate"
-          placeholder="请输入订购时间"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
+      <!--      <el-form-item label="商品编号" prop="orderItemId">-->
+      <!--        <el-input-->
+      <!--          v-model="queryParams.orderItemId"-->
+      <!--          placeholder="请输入亚马逊商品编号"-->
+      <!--          clearable-->
+      <!--          @keyup.enter.native="handleQuery"-->
+      <!--        />-->
+      <!--      </el-form-item>-->
+      <el-form-item label="订购时间">
+        <el-date-picker
+          v-model="daterangePurchaseDate"
+          style="width: 240px"
+          value-format="yyyy-MM-dd"
+          type="daterange"
+          range-separator="-"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+        ></el-date-picker>
       </el-form-item>
       <el-form-item label="ASIN" prop="asin">
         <el-input
@@ -165,17 +168,17 @@
     </el-form>
 
     <el-row :gutter="10" class="mb8">
-<!--      <el-col :span="1.5">-->
-<!--        <el-button-->
-<!--          type="primary"-->
-<!--          plain-->
-<!--          icon="el-icon-plus"-->
-<!--          size="mini"-->
-<!--          @click="handleAdd"-->
-<!--          v-hasPermi="['manage:orderInfo:add']"-->
-<!--        >新增-->
-<!--        </el-button>-->
-<!--      </el-col>-->
+      <!--      <el-col :span="1.5">-->
+      <!--        <el-button-->
+      <!--          type="primary"-->
+      <!--          plain-->
+      <!--          icon="el-icon-plus"-->
+      <!--          size="mini"-->
+      <!--          @click="handleAdd"-->
+      <!--          v-hasPermi="['manage:orderInfo:add']"-->
+      <!--        >新增-->
+      <!--        </el-button>-->
+      <!--      </el-col>-->
       <el-col :span="1.5">
         <el-button
           type="success"
@@ -214,8 +217,95 @@
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList" :columns="columns"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="orderInfoList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" border :data="orderInfoList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center"/>
+      <el-table-column type="expand">
+        <template slot-scope="props">
+          <el-form label-position="left" inline class="demo-table-expand">
+            <el-form-item label="编号">
+              <span>{{ props.row.id }}</span>
+            </el-form-item>
+            <el-form-item label="平台">
+              <span>{{ props.row.platform }}</span>
+            </el-form-item>
+            <el-form-item label="店铺">
+              <span>{{ props.row.storeName }}</span>
+            </el-form-item>
+            <el-form-item label="站点">
+              <span>{{ props.row.marketplaceId }}</span>
+            </el-form-item>
+            <el-form-item label="卖家订单编号">
+              <span>{{ props.row.sellerOrderId }}</span>
+            </el-form-item>
+            <el-form-item label="订单号">
+              <span>{{ props.row.amazonOrderId }}</span>
+            </el-form-item>
+            <el-form-item label="订购时间">
+              <span>{{ props.row.purchaseDate }}</span>
+            </el-form-item>
+            <el-form-item label="ASIN">
+              <span>{{ props.row.asin }}</span>
+            </el-form-item>
+            <el-form-item label="品名">
+              <span>{{ props.row.title }}</span>
+            </el-form-item>
+            <el-form-item label="亚马逊链接">
+              <el-link :href="props.row.comment" target="_blank"> {{ props.row.comment }}</el-link>
+            </el-form-item>
+            <el-form-item label="亚马逊评价时间">
+              <span>{{ props.row.evaluateTime }}</span>
+            </el-form-item>
+            <el-form-item label="亚马逊评价内容">
+              <span>{{ props.row.evaluateContent }}</span>
+            </el-form-item>
+            <el-form-item label="商品链接">
+              <el-link :href="props.row.goodsLink" target="_blank"> {{ props.row.goodsLink }}</el-link>
+            </el-form-item>
+            <el-form-item label="亚马逊商品编号">
+              <span>{{ props.row.orderItemId }}</span>
+            </el-form-item>
+            <el-form-item label="扫码时间">
+              <span>{{ props.row.scanTime }}</span>
+            </el-form-item>
+            <el-form-item label="买家姓名">
+              <span>{{ props.row.buyerName }}</span>
+            </el-form-item>
+            <el-form-item label="买家邮箱">
+              <span>{{ props.row.buyerEmail }}</span>
+            </el-form-item>
+            <el-form-item label="买家评论">
+              <span>{{ props.row.buyerEvaluate }}</span>
+            </el-form-item>
+            <el-form-item label="请求评论状态">
+              <dict-tag :options="dict.type.beg_evaluate_status" :value="props.row.begEvaluateStatus"/>
+            </el-form-item>
+            <el-form-item label="请求评论内容">
+              <span>{{ props.row.begEvalueteContent }}</span>
+            </el-form-item>
+            <el-form-item label="评论负责人">
+              <span>{{ props.row.evaluatePrincipal }}</span>
+            </el-form-item>
+            <el-form-item label="售后标记">
+              <dict-tag :options="dict.type.after_sale_sign" :value="props.row.afterSaleSign"/>
+            </el-form-item>
+            <el-form-item label="创建人">
+              <span>{{ props.row.userName }}</span>
+            </el-form-item>
+            <el-form-item label="创建时间">
+              <span>{{ props.row.createTime }}</span>
+            </el-form-item>
+            <el-form-item label="更新人">
+              <span>{{ props.row.updateBy }}</span>
+            </el-form-item>
+            <el-form-item label="更新时间">
+              <span>{{ props.row.updateTime }}</span>
+            </el-form-item>
+            <el-form-item label="备注">
+              <span>{{ props.row.remark }}</span>
+            </el-form-item>
+          </el-form>
+        </template>
+      </el-table-column>
       <el-table-column label="编号" align="center" v-if="columns[0].visible" prop="id"/>
       <el-table-column label="平台" :show-overflow-tooltip="true" align="center" v-if="columns[1].visible"
                        prop="platform"
@@ -241,7 +331,11 @@
       />
       <el-table-column label="亚马逊评价链接" :show-overflow-tooltip="true" align="center" v-if="columns[9].visible"
                        prop="comment"
-      />
+      >
+        <template slot-scope="scope">
+          <el-link :href="scope.row.comment" target="_blank">{{ scope.row.comment }}</el-link>
+        </template>
+      </el-table-column>
       <el-table-column label="亚马逊评价时间" align="center" v-if="columns[10].visible" prop="evaluateTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.evaluateTime, '{y}-{m}-{d}') }}</span>
@@ -255,7 +349,11 @@
       />
       <el-table-column label="商品链接" :show-overflow-tooltip="true" align="center" v-if="columns[13].visible"
                        prop="goodsLink"
-      />
+      >
+        <template slot-scope="scope">
+          <el-link :href="scope.row.goodsLink" target="_blank">{{ scope.row.goodsLink }}</el-link>
+        </template>
+      </el-table-column>
       <el-table-column label="亚马逊商品编号" :show-overflow-tooltip="true" align="center" v-if="columns[14].visible"
                        prop="orderItemId"
       />
@@ -391,7 +489,13 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="订购时间" prop="purchaseDate">
-              <el-input readonly v-model="form.purchaseDate" placeholder="请输入订购时间"/>
+              <el-date-picker clearable
+                              v-model="form.purchaseDate"
+                              type="date"
+                              value-format="yyyy-MM-dd"
+                              placeholder="请选择订购时间"
+              >
+              </el-date-picker>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -427,12 +531,12 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="亚马逊评分星级" prop="evaluateLevel">
-              <el-input v-model="form.evaluateLevel" placeholder="请输入亚马逊评分星级"/>
+              <el-input readonly v-model="form.evaluateLevel" placeholder="请输入亚马逊评分星级"/>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="亚马逊评价内容">
-              <el-input type="textarea" v-model="form.evaluateContent" :min-height="192"/>
+              <el-input readonly type="textarea" v-model="form.evaluateContent" :min-height="192"/>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -452,7 +556,7 @@
           <!--          </el-col>-->
           <el-col :span="12">
             <el-form-item label="扫码时间" prop="scanTime">
-              <el-date-picker clearable
+              <el-date-picker readonly clearable
                               v-model="form.scanTime"
                               type="datetime"
                               value-format="yyyy-MM-dd HH:mm:dd"
@@ -463,22 +567,22 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="买家姓名" prop="buyerName">
-              <el-input v-model="form.buyerName" placeholder="请输入买家姓名"/>
+              <el-input readonly v-model="form.buyerName" placeholder="请输入买家姓名"/>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="买家邮箱" prop="buyerEmail">
-              <el-input v-model="form.buyerEmail" placeholder="请输入买家邮箱"/>
+              <el-input readonly v-model="form.buyerEmail" placeholder="请输入买家邮箱"/>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="买家评分" prop="buyerLevel">
-              <el-input v-model="form.buyerLevel" placeholder="请输入买家评分"/>
+              <el-input readonly v-model="form.buyerLevel" placeholder="请输入买家评分"/>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="买家评论" prop="buyerEvaluate">
-              <el-input v-model="form.buyerEvaluate" placeholder="请输入买家评论"/>
+              <el-input readonly v-model="form.buyerEvaluate" placeholder="请输入买家评论"/>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -605,6 +709,7 @@ export default {
       title: '',
       // 是否显示弹出层
       open: false,
+      daterangePurchaseDate: [],
       // 备注时间范围
       daterangeScanTime: [],
       // 备注时间范围
@@ -614,7 +719,7 @@ export default {
       // 查询参数
       queryParams: {
         pageNum: 1,
-        pageSize: 10,
+        pageSize: 30,
         id: null,
         platform: null,
         storeId: null,
@@ -700,11 +805,11 @@ export default {
         this.form.title = res?.data?.title
         this.form.orderItemId = res?.data?.orderItemId
         this.form.sellerOrderId = res?.data?.sellerOrderId
-        this.form.goodsLink= res?.data?.goodsLink
-        this.form.evaluateContent= res?.data?.evaluateContent
-        this.form.evaluateTime= res?.data?.evaluateTime
-        this.form.evaluateLevel=res?.data?.evaluateLevel
-        this.form.comment= res?.data?.comment
+        this.form.goodsLink = res?.data?.goodsLink
+        this.form.evaluateContent = res?.data?.evaluateContent
+        this.form.evaluateTime = res?.data?.evaluateTime
+        this.form.evaluateLevel = res?.data?.evaluateLevel
+        this.form.comment = res?.data?.comment
         this.$modal.msgSuccess('获取成功')
       }).finally(() => {
         this.getOrderLoading = false
@@ -714,6 +819,10 @@ export default {
     getList() {
       this.loading = true
       this.queryParams.params = {}
+      if (null != this.daterangePurchaseDate && '' != this.daterangePurchaseDate) {
+        this.queryParams.params['beginPurchaseDate'] = this.daterangePurchaseDate[0]
+        this.queryParams.params['endPurchaseDate'] = this.daterangePurchaseDate[1]
+      }
       if (null != this.daterangeScanTime && '' != this.daterangeScanTime) {
         this.queryParams.params['beginScanTime'] = this.daterangeScanTime[0]
         this.queryParams.params['endScanTime'] = this.daterangeScanTime[1]
@@ -782,6 +891,7 @@ export default {
       this.daterangeScanTime = []
       this.daterangeCreateTime = []
       this.daterangeUpdateTime = []
+      this.daterangePurchaseDate = []
       this.resetForm('queryForm')
       this.handleQuery()
     },
@@ -849,3 +959,17 @@ export default {
   }
 }
 </script>
+<style>
+.demo-table-expand {
+  font-size: 0;
+}
+.demo-table-expand label {
+  width: 110px;
+  color: #99a9bf;
+}
+.demo-table-expand .el-form-item {
+  margin-right: 0;
+  margin-bottom: 0;
+  width: 50%;
+}
+</style>

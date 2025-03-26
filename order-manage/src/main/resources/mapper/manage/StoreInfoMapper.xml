@@ -51,7 +51,7 @@
             <if test="adStatus != null  and adStatus != ''">and ad_status like concat('%', #{adStatus}, '%')</if>
             <if test="status != null  and status != ''">and status = #{status}</if>
             <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''">
-                and create_time between #{params.beginCreateTime} and #{params.endCreateTime}
+                and DATE_FORMAT(create_time, '%Y-%m-%d') between #{params.beginCreateTime} and #{params.endCreateTime}
             </if>
         </where>
     </select>

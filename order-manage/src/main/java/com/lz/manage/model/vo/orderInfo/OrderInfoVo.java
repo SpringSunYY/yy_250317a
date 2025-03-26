@@ -49,7 +49,7 @@ public class OrderInfoVo implements Serializable
 
     /** 订购时间 */
     @Excel(name = "订购时间")
-    private String purchaseDate;
+    private Date purchaseDate;
 
     /** ASIN */
     @Excel(name = "ASIN")

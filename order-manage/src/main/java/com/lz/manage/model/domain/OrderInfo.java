@@ -67,8 +67,9 @@ public class OrderInfo implements Serializable {
     /**
      * 订购时间
      */
-    @Excel(name = "订购时间")
-    private String purchaseDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @Excel(name = "订购时间", width = 30, dateFormat = "yyyy-MM-dd")
+    private Date purchaseDate;
 
     /**
      * ASIN
