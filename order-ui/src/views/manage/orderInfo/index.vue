@@ -307,36 +307,36 @@
         </template>
       </el-table-column>
       <el-table-column label="编号" align="center" v-if="columns[0].visible" prop="id"/>
-      <el-table-column label="平台" :show-overflow-tooltip="true" align="center" v-if="columns[1].visible"
+      <el-table-column label="平台" width="150" :show-overflow-tooltip="true" align="center" v-if="columns[1].visible"
                        prop="platform"
       />
-      <el-table-column label="店铺" :show-overflow-tooltip="true" align="center" v-if="columns[2].visible"
+      <el-table-column label="店铺" width="150" :show-overflow-tooltip="true" align="center" v-if="columns[2].visible"
                        prop="storeName"
       />
-      <el-table-column label="站点" :show-overflow-tooltip="true" align="center" v-if="columns[3].visible"
+      <el-table-column label="站点" width="200" :show-overflow-tooltip="true" align="center" v-if="columns[3].visible"
                        prop="marketplaceId"
       />
       <el-table-column label="卖家订单编号" :show-overflow-tooltip="true" align="center" v-if="columns[4].visible"
                        prop="sellerOrderId"
       />
-      <el-table-column label="订单号" :show-overflow-tooltip="true" align="center" v-if="columns[5].visible"
+      <el-table-column label="订单号" width="200" :show-overflow-tooltip="true" align="center" v-if="columns[5].visible"
                        prop="amazonOrderId"
       />
-      <el-table-column label="订购时间" :show-overflow-tooltip="true" align="center" v-if="columns[6].visible"
+      <el-table-column label="订购时间" width="200" :show-overflow-tooltip="true" align="center" v-if="columns[6].visible"
                        prop="purchaseDate"
       />
-      <el-table-column label="ASIN" :show-overflow-tooltip="true" align="center" v-if="columns[7].visible" prop="asin"/>
-      <el-table-column label="品名" :show-overflow-tooltip="true" align="center" v-if="columns[8].visible"
+      <el-table-column label="ASIN" width="200" :show-overflow-tooltip="true" align="center" v-if="columns[7].visible" prop="asin"/>
+      <el-table-column label="品名" width="200" :show-overflow-tooltip="true" align="center" v-if="columns[8].visible"
                        prop="title"
       />
-      <el-table-column label="亚马逊评价链接" :show-overflow-tooltip="true" align="center" v-if="columns[9].visible"
+      <el-table-column label="亚马逊评价链接"  :show-overflow-tooltip="true" align="center" v-if="columns[9].visible"
                        prop="comment"
       >
         <template slot-scope="scope">
-          <el-link :href="scope.row.comment" target="_blank">{{ scope.row.comment }}</el-link>
+          <el-link :href="scope.row.comment"  target="_blank">{{ scope.row.comment }}</el-link>
         </template>
       </el-table-column>
-      <el-table-column label="亚马逊评价时间" align="center" v-if="columns[10].visible" prop="evaluateTime" width="180">
+      <el-table-column label="亚马逊评价时间"  align="center" v-if="columns[10].visible" prop="evaluateTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.evaluateTime, '{y}-{m}-{d}') }}</span>
         </template>
@@ -453,6 +453,7 @@
                 placeholder="请输入店铺名称"
                 :remote-method="selectStoreInfoList"
                 :loading="storeInfoLoading"
+                disabled
               >
                 <el-option
                   v-for="item in storeInfoList"
@@ -466,7 +467,7 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="订单号" prop="amazonOrderId">
-              <el-input v-model="form.amazonOrderId" placeholder="请输入订单号"/>
+              <el-input readonly v-model="form.amazonOrderId" placeholder="请输入订单号"/>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -476,12 +477,13 @@
                 placeholder="请输入卖家订单编号"
                 clearable
                 @keyup.enter.native="handleQuery"
+                readonly
               />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="获取订单信息" prop="getOrderInfoByApi">
-              <el-button type="primary" :loading="getOrderLoading" @click="getOrderInfoByApiInfo">获取订单信息
+              <el-button disabled type="primary" :loading="getOrderLoading" @click="getOrderInfoByApiInfo">获取订单信息
               </el-button>
             </el-form-item>
           </el-col>
@@ -494,6 +496,7 @@
                               type="date"
                               value-format="yyyy-MM-dd"
                               placeholder="请选择订购时间"
+                              readonly
               >
               </el-date-picker>
             </el-form-item>
@@ -525,6 +528,7 @@
                               type="datetime"
                               value-format="yyyy-MM-dd HH:mm:ss"
                               placeholder="请选择亚马逊评价时间"
+                              readonly
               >
               </el-date-picker>
             </el-form-item>
@@ -670,26 +674,26 @@ export default {
         { key: 6, label: '订购时间', visible: true },
         { key: 7, label: 'ASIN', visible: true },
         { key: 8, label: '品名', visible: true },
-        { key: 9, label: '亚马逊评价链接', visible: false },
-        { key: 10, label: '亚马逊评价时间', visible: false },
+        { key: 9, label: '亚马逊评价链接', visible: true },
+        { key: 10, label: '亚马逊评价时间', visible: true },
         { key: 11, label: '亚马逊评分星级', visible: true },
-        { key: 12, label: '亚马逊评价内容', visible: false },
-        { key: 13, label: '亚马逊商品链接', visible: true },
+        { key: 12, label: '亚马逊评价内容', visible: true },
+        { key: 13, label: '亚马逊商品链接', visible: false },
         { key: 14, label: '亚马逊商品编号', visible: false },
-        { key: 15, label: '扫码时间', visible: false },
+        { key: 15, label: '扫码时间', visible: true },
         { key: 16, label: '买家姓名', visible: true },
-        { key: 17, label: '买家邮箱', visible: false },
-        { key: 18, label: '买家评分', visible: false },
-        { key: 19, label: '买家评论', visible: false },
-        { key: 20, label: '请求评论状态', visible: false },
-        { key: 21, label: '请求评论内容', visible: false },
-        { key: 22, label: '评论负责人', visible: false },
-        { key: 23, label: '售后标记', visible: true },
+        { key: 17, label: '买家邮箱', visible: true },
+        { key: 18, label: '买家评分', visible: true },
+        { key: 19, label: '买家评论', visible: true },
+        { key: 20, label: '请求评论状态', visible: true },
+        { key: 21, label: '请求评论内容', visible: true },
+        { key: 22, label: '评论负责人', visible: true },
+        { key: 23, label: '售后标记', visible: false },
         { key: 24, label: '创建人', visible: false },
         { key: 25, label: '创建时间', visible: false },
         { key: 26, label: '更新人', visible: false },
         { key: 27, label: '更新时间', visible: false },
-        { key: 28, label: '备注', visible: false }
+        { key: 28, label: '备注', visible: true }
       ],
       // 遮罩层
       loading: true,
