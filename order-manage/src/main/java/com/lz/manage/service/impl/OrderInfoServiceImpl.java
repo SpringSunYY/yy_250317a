@@ -7,6 +7,7 @@ import com.lz.common.exception.ServiceException;
 import com.lz.common.utils.DateUtils;
 import com.lz.common.utils.SecurityUtils;
 import com.lz.common.utils.StringUtils;
+import com.lz.common.utils.bean.BeanUtils;
 import com.lz.manage.mapper.OrderInfoMapper;
 import com.lz.manage.model.api.CommodityDetailResponse;
 import com.lz.manage.model.api.OrderInfoResponse;
@@ -19,12 +20,12 @@ import com.lz.manage.model.vo.orderInfo.OrderInfoVo;
 import com.lz.manage.service.IApiService;
 import com.lz.manage.service.IOrderInfoService;
 import com.lz.manage.service.IStoreInfoService;
+import com.lz.system.service.ISysConfigService;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 import static com.lz.common.constant.HttpStatus.NOT_MODIFIED;
@@ -46,6 +47,12 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
 
     @Resource
     private IStoreInfoService storeInfoService;
+
+    @Resource
+    private ISysConfigService configService;
+
+    //多线程
+
 
     //region mybatis代码
 
@@ -163,7 +170,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         String amazonOrderId = orderInfoQuery.getAmazonOrderId();
         queryWrapper.eq(StringUtils.isNotEmpty(amazonOrderId), "amazon_order_id", amazonOrderId);
 
-        String purchaseDate = orderInfoQuery.getPurchaseDate();
+        Date purchaseDate = orderInfoQuery.getPurchaseDate();
         queryWrapper.between(StringUtils.isNotNull(params.get("beginPurchaseDate")) && StringUtils.isNotNull(params.get("endPurchaseDate")), "purchase_date", params.get("beginPurchaseDate"), params.get("endPurchaseDate"));
 
         String asin = orderInfoQuery.getAsin();
@@ -282,12 +289,61 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         if (StringUtils.isNull(storeInfo)) {
             throw new ServiceException("店铺信息不存在", NO_CONTENT);
         }
-        orderInfoApiQuery.setStoreId(storeInfo.getStoreId());
-        orderInfoApiQuery.setAmazonOrderId(orderInfo.getAmazonOrderId());
-        orderInfoApiQuery.setSellerOrderId(orderInfo.getSellerOrderId());
+        //遍历所有的店铺
+        List<StoreInfo> list = storeInfoService.list();
+        //打开线程查询使用多线程获取订单信息
+        String executorSize = configService.selectConfigByKey("executorSize");
+        int size = 0;
+        try {
+            size = Integer.parseInt(executorSize);
+        } catch (NumberFormatException e) {
+            size = 5;
+        }
+        ExecutorService executorService = Executors.newFixedThreadPool(size);
+        List<Future<OrderInfo>> futures = new ArrayList<>();
+        System.out.println("293orderInfo = " + orderInfo);
+        for (StoreInfo store : list) {
+            Future<OrderInfo> future = executorService.submit(() -> {
+                OrderInfoApiQuery apiQuery = new OrderInfoApiQuery();
+                OrderInfo info = new OrderInfo();
+                BeanUtils.copyProperties(orderInfo, info);
+                System.out.println("info = " + info);
+                System.out.println("orderInfo = " + orderInfo);
+                apiQuery.setStoreId(store.getStoreId());
+                apiQuery.setAmazonOrderId(info.getAmazonOrderId());
+                apiQuery.setSellerOrderId(info.getSellerOrderId());
+                return this.getOrderInfo(info, apiQuery);
+            });
+            futures.add(future);
+        }
+        OrderInfo result = new OrderInfo();
+        //等待所有进程执行完成
+        for (Future<OrderInfo> future : futures) {//判断进程是否有报错，如果没有则表示找到订单
+            try {
+                OrderInfo info = future.get();
+                //如果找到了订单，则跳出循环
+                if (StringUtils.isNotNull(info.getPurchaseDate())) {
+                    BeanUtils.copyProperties(info, result);
+                    System.out.println("info = " + info);
+                    break;
+                }
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+        if (StringUtils.isNull(result.getPurchaseDate())) {
+            throw new ServiceException("订单未找到", NO_CONTENT);
+        } else {
+            this.insertOrderInfo(result);
+            return result;
+        }
+    }
+
+    private OrderInfo getOrderInfo(OrderInfo orderInfo, OrderInfoApiQuery orderInfoApiQuery) {
+        System.out.println("orderInfoApiQuery = " + orderInfoApiQuery);
         OrderInfo orderInfoByApi = this.getOrderInfoByApi(orderInfoApiQuery);
         //设置初值
-        orderInfo.setStoreId(storeInfo.getStoreId());
+        orderInfo.setStoreId(orderInfoApiQuery.getStoreId());
         orderInfo.setEvaluateContent(orderInfoByApi.getEvaluateContent()); // 评论内容
         orderInfo.setEvaluateTime(orderInfoByApi.getEvaluateTime()); // 评论时间
         orderInfo.setEvaluateLevel(orderInfoByApi.getEvaluateLevel()); // 星级
@@ -301,7 +357,6 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         orderInfo.setGoodsLink(orderInfoByApi.getGoodsLink());
         orderInfo.setSellerOrderId(orderInfoByApi.getSellerOrderId());
         orderInfo.setUserName("用户创建");
-        this.insertOrderInfo(orderInfo);
         return orderInfo;
     }
 }

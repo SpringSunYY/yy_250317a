@@ -4,6 +4,7 @@ import com.lz.common.annotation.Excel;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -51,7 +52,7 @@ public class OrderInfoResponse implements Serializable {
         /**
          * 订购时间
          */
-        private String purchaseDate;
+        private Date purchaseDate;
 
         /**
          * ASIN

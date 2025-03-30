@@ -23,7 +23,7 @@ public class OrderInfoAdd implements Serializable {
     /**
      * 店铺
      */
-    @NotEmpty(message = "storeId店铺唯一标识不能为空")
+//    @NotEmpty(message = "storeId店铺唯一标识不能为空")
     private String storeId;
 
     /**
