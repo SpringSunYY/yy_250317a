@@ -21,5 +21,6 @@ public class CommodityDetailResponse implements Serializable {
     public static class Data {
         private String id;
         private String sourceUrls;
+        private String name;
     }
 }

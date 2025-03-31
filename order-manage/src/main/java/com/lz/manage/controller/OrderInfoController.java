@@ -99,7 +99,17 @@ public class OrderInfoController extends BaseController {
     }
 
     /**
-     * 外部接口新增订单
+     * 外部接口查询订单
+     */
+    @PreAuthorize("@sk.hasKey()")
+    @PostMapping("/external/query")
+    public AjaxResult externalQuery(@RequestBody @Validated OrderQuery orderQuery) {
+        OrderInfo orderInfo = OrderQuery.insertToObj(orderQuery);
+        return success(orderInfoService.externalQuery(orderInfo));
+    }
+
+    /**
+     * 外部接口查询订单
      */
     @PreAuthorize("@sk.hasKey()")
     @PostMapping("/external/add")

@@ -228,10 +228,11 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
                 orderInfoApiQuery.getAmazonOrderId(),
                 orderInfoApiQuery.getSellerOrderId()
         );
-        if (StringUtils.isNull(orderInfoByApi)) {
+        //如果没有采购时间表示订单找不到
+        if (StringUtils.isNull(orderInfoByApi.getPurchaseDate())) {
             throw new ServiceException("订单信息不存在", NO_CONTENT);
         }
-        System.out.println("227getOrderInfoByApi orderInfoByApi = " + orderInfoByApi);
+//        System.out.println("227getOrderInfoByApi orderInfoByApi = " + orderInfoByApi);
         // 3. 组装订单基本信息
         OrderInfo orderInfo = new OrderInfo();
         orderInfo.setAmazonOrderId(orderInfoApiQuery.getAmazonOrderId());
@@ -258,6 +259,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
             CommodityDetailResponse.Data commodityDetail = commodityDetailFuture.get();
             if (StringUtils.isNotNull(commodityDetail) && StringUtils.isNotEmpty(commodityDetail.getSourceUrls())) {
                 orderInfo.setGoodsLink(commodityDetail.getSourceUrls());
+                orderInfo.setTitle(commodityDetail.getName());
             }
 
             // 6. 获取并处理 `reviewData`
@@ -270,25 +272,25 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
                 orderInfo.setComment(review.getContentUrl()); // 评论链接
             }
         } catch (InterruptedException | ExecutionException e) {
-            log.error("获取订单信息失败", e);
+//            log.error("获取订单信息失败", e);
             return orderInfo;
         }
-        System.out.println("270getOrderInfoByApi orderInfo = " + orderInfo);
+//        System.out.println("270getOrderInfoByApi orderInfo = " + orderInfo);
         return orderInfo;
     }
 
     @Override
-    public OrderInfo externalAdd(OrderInfo orderInfo) {
+    public OrderInfo externalQuery(OrderInfo orderInfo) {
         //根据Amazon订单号查询订单信息
-        OrderInfo one = this.getOne(new LambdaQueryWrapper<>(OrderInfo.class).eq(OrderInfo::getAmazonOrderId, orderInfo.getAmazonOrderId()));
-        if (StringUtils.isNotNull(one)) {
-            throw new ServiceException("订单信息已经评价，无需再评价", NOT_MODIFIED);
-        }
-        OrderInfoApiQuery orderInfoApiQuery = new OrderInfoApiQuery();
-        StoreInfo storeInfo = storeInfoService.selectStoreInfoByStoreId(orderInfo.getStoreId());
-        if (StringUtils.isNull(storeInfo)) {
-            throw new ServiceException("店铺信息不存在", NO_CONTENT);
-        }
+//        OrderInfo one = this.getOne(new LambdaQueryWrapper<>(OrderInfo.class).eq(OrderInfo::getAmazonOrderId, orderInfo.getAmazonOrderId()));
+//        if (StringUtils.isNotNull(one)) {
+//            throw new ServiceException("订单信息已经评价，无需再评价", NOT_MODIFIED);
+//        }
+//        OrderInfoApiQuery orderInfoApiQuery = new OrderInfoApiQuery();
+//        StoreInfo storeInfo = storeInfoService.selectStoreInfoByStoreId(orderInfo.getStoreId());
+//        if (StringUtils.isNull(storeInfo)) {
+//            throw new ServiceException("店铺信息不存在", NO_CONTENT);
+//        }
         //遍历所有的店铺
         List<StoreInfo> list = storeInfoService.list();
         //打开线程查询使用多线程获取订单信息
@@ -301,14 +303,14 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         }
         ExecutorService executorService = Executors.newFixedThreadPool(size);
         List<Future<OrderInfo>> futures = new ArrayList<>();
-        System.out.println("293orderInfo = " + orderInfo);
+//        System.out.println("293orderInfo = " + orderInfo);
         for (StoreInfo store : list) {
             Future<OrderInfo> future = executorService.submit(() -> {
                 OrderInfoApiQuery apiQuery = new OrderInfoApiQuery();
                 OrderInfo info = new OrderInfo();
                 BeanUtils.copyProperties(orderInfo, info);
-                System.out.println("info = " + info);
-                System.out.println("orderInfo = " + orderInfo);
+//                System.out.println("info = " + info);
+//                System.out.println("orderInfo = " + orderInfo);
                 apiQuery.setStoreId(store.getStoreId());
                 apiQuery.setAmazonOrderId(info.getAmazonOrderId());
                 apiQuery.setSellerOrderId(info.getSellerOrderId());
@@ -324,23 +326,38 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
                 //如果找到了订单，则跳出循环
                 if (StringUtils.isNotNull(info.getPurchaseDate())) {
                     BeanUtils.copyProperties(info, result);
-                    System.out.println("info = " + info);
+//                    System.out.println("info = " + info);
                     break;
                 }
             } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
+//                e.printStackTrace();
             }
         }
         if (StringUtils.isNull(result.getPurchaseDate())) {
             throw new ServiceException("订单未找到", NO_CONTENT);
         } else {
-            this.insertOrderInfo(result);
+//            this.insertOrderInfo(result);
             return result;
         }
     }
 
+    @Override
+    public int externalAdd(OrderInfo orderInfo) {
+        //根据Amazon订单号查询订单信息
+        OrderInfo one = this.getOne(new LambdaQueryWrapper<>(OrderInfo.class).eq(OrderInfo::getAmazonOrderId, orderInfo.getAmazonOrderId()));
+        if (StringUtils.isNotNull(one)) {
+            throw new ServiceException("订单信息已经评价，无需再评价", NOT_MODIFIED);
+        }
+        StoreInfo storeInfo = storeInfoService.selectStoreInfoByStoreId(orderInfo.getStoreId());
+        if (StringUtils.isNull(storeInfo)) {
+            throw new ServiceException("店铺信息不存在", NO_CONTENT);
+        }
+        orderInfo.setUserName("用户创建");
+        return this.insertOrderInfo(orderInfo);
+    }
+
     private OrderInfo getOrderInfo(OrderInfo orderInfo, OrderInfoApiQuery orderInfoApiQuery) {
-        System.out.println("orderInfoApiQuery = " + orderInfoApiQuery);
+//        System.out.println("orderInfoApiQuery = " + orderInfoApiQuery);
         OrderInfo orderInfoByApi = this.getOrderInfoByApi(orderInfoApiQuery);
         //设置初值
         orderInfo.setStoreId(orderInfoApiQuery.getStoreId());

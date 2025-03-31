@@ -95,7 +95,7 @@ public class ApiServiceImpl implements IApiService {
         try {
             sign = generateSign("/api/shop/pageList.json", "post", token, clientId, timestamp, nonce, clientSecret);
         } catch (Exception e) {
-            log.error("生成签名失败！！！", e);
+//            log.error("生成签名失败！！！", e);
             throw new ServiceException("生成签名失败！！！");
         }
         Map<String, Object> queryParams = new HashMap<>();
@@ -124,8 +124,8 @@ public class ApiServiceImpl implements IApiService {
                 .timeout(10000)
                 .execute();
         //打印完整请求
-        String command = generateCurlCommand(apiUrl, queryParams, headers, body);
-        System.out.println(command);
+//        String command = generateCurlCommand(apiUrl, queryParams, headers, body);
+//        System.out.println(command);
         String responseBody = response.body();
         System.err.println(responseBody);
         StoreInfoResponse storeInfoResponse = JSONObject.parseObject(responseBody, StoreInfoResponse.class);
@@ -135,7 +135,7 @@ public class ApiServiceImpl implements IApiService {
             throw new ServiceException("access_token 失效，正在重新获取token,请重新操作", 40001);
         }
         if (!response.isOk()) {
-            log.error("获取店铺信息失败,responseBody:{}", responseBody);
+//            log.error("获取店铺信息失败,responseBody:{}", responseBody);
             throw new RuntimeException("获取店铺信息失败");
 
         }
@@ -171,7 +171,7 @@ public class ApiServiceImpl implements IApiService {
         try {
             sign = generateSign("/api/order/detailByOrderId.json", "post", token, clientId, timestamp, nonce, clientSecret);
         } catch (Exception e) {
-            log.error("生成签名失败！！！", e);
+//            log.error("生成签名失败！！！", e);
             throw new ServiceException("生成签名失败");
         }
         // 构建Query参数（逐个put）
@@ -204,14 +204,14 @@ public class ApiServiceImpl implements IApiService {
                 .timeout(10000)
                 .execute();
         //打印完整请求
-        String command = generateCurlCommand(apiUrl, queryParams, headers, JSONUtil.toJsonStr(bodyParams));
-        System.out.println("207getOrderInfo response = " + response);
+//        String command = generateCurlCommand(apiUrl, queryParams, headers, JSONUtil.toJsonStr(bodyParams));
+//        System.out.println("207getOrderInfo response = " + response);
         String responseBody = response.body();
-        System.err.println("201getOrderInfo responseBody" + responseBody);
+//        System.err.println("201getOrderInfo responseBody" + responseBody);
         OrderInfoResponse orderInfoResponse = JSONObject.parseObject(responseBody, OrderInfoResponse.class);
-        System.out.println("211getOrderInfo orderInfoResponse = " + orderInfoResponse);
-        System.err.println("212getOrderInfo response = " + response);
-        System.out.println(command);
+//        System.out.println("211getOrderInfo orderInfoResponse = " + orderInfoResponse);
+//        System.err.println("212getOrderInfo response = " + response);
+//        System.out.println(command);
 
         if (orderInfoResponse.getCode().equals("40001") || orderInfoResponse.getMsg().equals("access_token 失效")) {
             getToken();
@@ -237,8 +237,8 @@ public class ApiServiceImpl implements IApiService {
             data.setOrderItemId(orderItem.getOrderItemId());
             data.setGoodsLink(orderItem.getAsinUrl());
         }
-        System.out.println("238getOrderInfo orderItemVoList = " + orderItemVoList);
-        System.out.println("239getOrderInfo data = " + data);
+//        System.out.println("238getOrderInfo orderItemVoList = " + orderItemVoList);
+//        System.out.println("239getOrderInfo data = " + data);
         return data;
 
     }
@@ -268,7 +268,7 @@ public class ApiServiceImpl implements IApiService {
         try {
             sign = generateSign("/api/commodity/getCommodityDetail.json", "post", token, clientId, timestamp, nonce, clientSecret);
         } catch (Exception e) {
-            log.error("生成签名失败！！！", e);
+//            log.error("生成签名失败！！！", e);
             throw new ServiceException("生成签名失败");
         }
 
@@ -293,13 +293,13 @@ public class ApiServiceImpl implements IApiService {
                 .execute();
 
         //打印完整请求
-        String command = generateCurlCommand(apiUrl, queryParams, headers, JSONUtil.toJsonStr(bodyParams));
+//        String command = generateCurlCommand(apiUrl, queryParams, headers, JSONUtil.toJsonStr(bodyParams));
         String responseBody = response.body();
-        System.err.println("296getCommodityDetail responseBody" + responseBody);
+//        System.err.println("296getCommodityDetail responseBody" + responseBody);
         CommodityDetailResponse detailResponse = JSONObject.parseObject(responseBody, CommodityDetailResponse.class);
-        System.out.println("298getCommodityDetail detailResponse = " + detailResponse);
-        System.err.println("299getCommodityDetail response = " + response);
-        System.out.println(command);
+//        System.out.println("298getCommodityDetail detailResponse = " + detailResponse);
+//        System.err.println("299getCommodityDetail response = " + response);
+//        System.out.println(command);
 
         if (detailResponse.getCode().equals("40001") || detailResponse.getMsg().equals("access_token 失效")) {
             getToken();
@@ -307,12 +307,12 @@ public class ApiServiceImpl implements IApiService {
         }
         if (!detailResponse.getCode().equals("0")) {
 //            throw new RuntimeException("获取商品信息失败");
-            log.error("获取商品信息失败");
+//            log.error("获取商品信息失败");
             return new CommodityDetailResponse.Data();
         }
         if (!response.isOk()) {
 //            throw new RuntimeException("获取商品信息失败");
-            log.error("获取商品信息失败");
+//            log.error("获取商品信息失败");
             return new CommodityDetailResponse.Data();
         }
         CommodityDetailResponse.Data data = detailResponse.getData();
@@ -348,7 +348,7 @@ public class ApiServiceImpl implements IApiService {
         try {
             sign = generateSign("/api/review/pageDetailList.json", "post", token, clientId, timestamp, nonce, clientSecret);
         } catch (Exception e) {
-            log.error("生成签名失败！！！", e);
+//            log.error("生成签名失败！！！", e);
         }
         Map<String, Object> queryParams = new HashMap<>();
         queryParams.put("access_token", token);
@@ -377,13 +377,13 @@ public class ApiServiceImpl implements IApiService {
                 .timeout(5000)
                 .execute();
         //打印完整请求
-        String command = generateCurlCommand(apiUrl, queryParams, headers, JSONUtil.toJsonStr(bodyParams));
+//        String command = generateCurlCommand(apiUrl, queryParams, headers, JSONUtil.toJsonStr(bodyParams));
         String responseBody = response.body();
-        System.err.println("378getReviewDetailList responseBody" + responseBody);
+//        System.err.println("378getReviewDetailList responseBody" + responseBody);
         ReviewResponse reviewResponse = JSONObject.parseObject(responseBody, ReviewResponse.class);
-        System.out.println("380getReviewDetailList reviewResponse = " + reviewResponse);
-        System.err.println("381getReviewDetailList response = " + response);
-        System.out.println(command);
+//        System.out.println("380getReviewDetailList reviewResponse = " + reviewResponse);
+//        System.err.println("381getReviewDetailList response = " + response);
+//        System.out.println(command);
 
         if (reviewResponse.getCode().equals("40001") || reviewResponse.getMsg().equals("access_token 失效")) {
             getToken();
@@ -396,15 +396,15 @@ public class ApiServiceImpl implements IApiService {
         }
         if (!response.isOk()) {
 //            throw new RuntimeException("获取商品信息失败");
-            log.error("获取商品评论信息失败");
+//            log.error("获取商品评论信息失败");
             return new ReviewResponse.Data();
         }
         ReviewResponse.Data data = reviewResponse.getData();
         if (StringUtils.isNull(data)) {
-            log.info("商品评论信息为空");
+//            log.info("商品评论信息为空");
             return new ReviewResponse.Data();
         }
-        System.out.println("403getReviewDetailList data = " + data);
+//        System.out.println("403getReviewDetailList data = " + data);
         return data;
     }
 

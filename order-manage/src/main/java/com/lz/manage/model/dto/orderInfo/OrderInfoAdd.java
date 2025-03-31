@@ -23,7 +23,7 @@ public class OrderInfoAdd implements Serializable {
     /**
      * 店铺
      */
-//    @NotEmpty(message = "storeId店铺唯一标识不能为空")
+    @NotEmpty(message = "storeId店铺唯一标识不能为空")
     private String storeId;
 
     /**
@@ -75,6 +75,56 @@ public class OrderInfoAdd implements Serializable {
      */
     private String begEvaluateStatus;
 
+    /**
+     * 卖家订单编号
+     */
+    private String sellerOrderId;
+
+    /**
+     * 订购时间
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private Date purchaseDate;
+
+    /**
+     * ASIN
+     */
+    private String asin;
+
+    /**
+     * 品名
+     */
+    private String title;
+
+    /**
+     * 亚马逊评价链接
+     */
+    private String comment;
+
+    /**
+     * 亚马逊评分星级
+     */
+    private String evaluateLevel;
+
+    /**
+     * 亚马逊评价内容
+     */
+    private String evaluateContent;
+
+    /**
+     * 亚马逊商品编号
+     */
+    private String orderItemId;
+
+    /**
+     * 亚马逊商品链接
+     */
+    private String goodsLink;
+
+    /**
+     * 站点
+     */
+    private String marketplaceId;
 
     /**
      * 对象转封装类
