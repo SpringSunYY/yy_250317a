@@ -30,7 +30,7 @@ public class CommonTest {
 
     private static final String CLIENT_ID = "367971";
     private static final String CLIENT_SECRET = "df2bac03-1006-4974-89f1-8163162d4910";
-    private static final String ACCESS_TOKEN = "357c819e-3c11-426b-86b0-16c836751da9";
+    private static final String ACCESS_TOKEN = "9954ff0e-d819-45ee-819f-3db3d3bc7b89";
 
     @Test
     public void test() {
@@ -331,6 +331,76 @@ public class CommonTest {
         }
     }
 
+    /*
+    订单列表 POST /api/order/pageList.json 销售
+        请求参数
+            Query 参数
+            access_token string 必需 通过获取token接口获得的token，详见 获取 Access Token默认值:{{access_token}}
+            client_id string 必需 client_id, 获取方式详见 申请API权限 默认值:{{client_id}}
+            timestamp string 必需 13位毫秒时间戳，与当前时间差异不超过正负15分钟，示例：1668153260508 默认值:121212
+            nonce string 必需 随机整数值，保证每个请求唯一，示例：11251 默认值: 121212
+            sign string 必需 请求签名，详见 生成sign（签名）默认值: 121212121
+            Header 参数 Content-Type string
+            可选
+            固定再header位置加入Content-Type:application/json 默认值: application/json
+            Body 参数 application/json
+            dateType string 可选 筛选的日期类型(updateDateTime:更新时间,createDateTime:创建时间,purchase:订购时间)
+            dateStart string 可选 时间左边界,格式yyyy-MM-dd hh:mm:ss
+            dateEnd string 可选 时间右边界,格式yyyy-MM-dd hh:mm:ss
+            refundOrder string 可选 退款订单(0:否,1:是)
+            returnOrder string 可选 退货订单(0:否,1:是)
+            replaceOrder string 可选 换货订单(0:否,1:是)
+            isBusinessOrder string 可选 b2b订单(0:否,1:是)
+            removeOrder string 可选 移除订单(0:否,1:是)
+            pageNo string 第几页 可选
+            pageSize string 每页大小 可选
+            searchType string 可选 搜索类型(按照亚马逊订单号搜索:amazonOrderId,按照买家邮箱搜索:buyerEmail)
+            searchContent string 搜索内容 可选
+            fulfillmentOrder string  可选 多渠道订单(0:否,1:是)
+            fulfillment string 可选 发货方式(MFN=FBM AFN=FBA)
+            orderStatus string 可选 订单状态,可取值:PendingAvailability,Pending,Unshipped,PartiallyShipped,Shipped,InvoiceUnconfirmed,Canceled,Unfulfillable;多选使用逗号分隔
+            shopIdList array[string] 店铺ID 可选
+            searchMode string 可选 搜索类型(可选值: 精确:exact;模糊:blur, 默认blur) unlimitedTime string
+     */
+    @Test
+    public void getOrderList() throws Exception {
+        String url = "https://openapi.sellfox.com/api/order/pageList.json";
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String nonce = String.valueOf(new Random().nextInt(100000));
+        String sign = generateSign("/api/order/pageList.json", "post", ACCESS_TOKEN, CLIENT_ID, timestamp, nonce, CLIENT_SECRET);
+        Map<String, Object> queryParams = new HashMap<>();
+        queryParams.put("access_token", ACCESS_TOKEN);
+        queryParams.put("client_id", CLIENT_ID);
+        queryParams.put("nonce", nonce);
+        queryParams.put("timestamp", timestamp);
+        queryParams.put("sign", sign);
+        Map<String, Object> bodyParams = new HashMap<>();
+        bodyParams.put("dateType", "purchase");
+        //现在的三小时前
+        String format = DateUtil.format(DateUtil.offsetHour(DateUtil.date(), -3), "yyyy-MM-dd HH:mm:ss");
+        bodyParams.put("dateStart", format);
+        System.out.println("format = " + format);
+        String format1 = DateUtil.format(DateUtil.date(), "yyyy-MM-dd HH:mm:ss");
+        System.out.println("format1 = " + format1);
+        bodyParams.put("dateEnd", format1);
+        bodyParams.put("pageNo", "1");
+        bodyParams.put("pageSize", "200");
+        HashMap<String, String> headers = new HashMap<>();
+        headers.put("Content-Type", "application/json");
+        try {
+            HttpResponse response = HttpRequest.post(url)
+                    .header("Content-Type", "application/json")
+                    .body(JSONUtil.toJsonStr(bodyParams))
+                    .timeout(5000)
+                    .execute();
+            //打印完整请求
+            String command = generateCurlCommand(url, queryParams, headers, JSONUtil.toJsonStr(bodyParams));
+            System.out.println(command);
+        }catch (Exception e) {
+            System.err.println("请求异常: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
     private static String generateCurlCommand(String url, Map<String, Object> queryParams, Map<String, String> headers, String body) {
         StringBuilder curlCommand = new StringBuilder("curl -X POST ");
 

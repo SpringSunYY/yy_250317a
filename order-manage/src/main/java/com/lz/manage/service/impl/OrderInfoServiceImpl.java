@@ -1,5 +1,6 @@
 package com.lz.manage.service.impl;
 
+import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -11,6 +12,7 @@ import com.lz.common.utils.bean.BeanUtils;
 import com.lz.manage.mapper.OrderInfoMapper;
 import com.lz.manage.model.api.CommodityDetailResponse;
 import com.lz.manage.model.api.OrderInfoResponse;
+import com.lz.manage.model.api.OrderResponse;
 import com.lz.manage.model.api.ReviewResponse;
 import com.lz.manage.model.domain.OrderInfo;
 import com.lz.manage.model.domain.StoreInfo;
@@ -375,5 +377,51 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         orderInfo.setSellerOrderId(orderInfoByApi.getSellerOrderId());
         orderInfo.setUserName("用户创建");
         return orderInfo;
+    }
+
+    @Override
+    public void autoGetOrderInfo() {
+        //现在的三小时前
+        String dateStart = DateUtil.format(DateUtil.offsetHour(DateUtil.date(), -3), "yyyy-MM-dd HH:mm:ss");
+        String dateEnd = DateUtil.format(DateUtil.date(), "yyyy-MM-dd HH:mm:ss");
+        OrderResponse.Data orderInfoList = apiService.getOrderInfoList(dateStart, dateEnd);
+        boolean b = StringUtils.isNotNull(orderInfoList) && StringUtils.isNotEmpty(orderInfoList.getRows());
+        if (!b) {
+            return;
+        }
+        orderInfoList.getRows().forEach(orderInfo -> {
+            OrderInfo info = new OrderInfo();
+            //先查询是否有此订单
+            OrderInfo one = this.getOne(new LambdaQueryWrapper<>(OrderInfo.class).eq(OrderInfo::getAmazonOrderId, orderInfo.getAmazonOrderId()));
+            if (StringUtils.isNotNull(one)) {
+                BeanUtils.copyProperties(orderInfo, info);
+            } else {
+                //没有
+                info.setUserName("自动获取");
+                info.setCreateTime(new Date());
+            }
+            info.setPurchaseDate(orderInfo.getPurchaseDate());
+            info.setAmazonOrderId(orderInfo.getAmazonOrderId());
+            info.setStoreId(orderInfo.getShopId());
+            info.setEvaluateContent(orderInfo.getAmazonOrderId());
+            info.setMarketplaceId(orderInfo.getMarketplaceId());
+            info.setComment(orderInfo.getComment());
+            info.setBuyerEmail(orderInfo.getBuyerEmail());
+            info.setBuyerName(orderInfo.getBuyerName());
+            List<OrderResponse.Row.OrderItem> orderItemVoList = orderInfo.getOrderItemVoList();
+            if (StringUtils.isNotEmpty(orderItemVoList) && StringUtils.isNotEmpty(orderItemVoList.get(0).getAsinUrl())) {
+                info.setGoodsLink(orderItemVoList.get(0).getAsinUrl());
+            }
+            if (StringUtils.isNotEmpty(orderItemVoList) && StringUtils.isNotEmpty(orderItemVoList.get(0).getAsin())) {
+                info.setAsin(orderItemVoList.get(0).getAsin());
+            }
+            if (StringUtils.isNotEmpty(orderItemVoList) && StringUtils.isNotEmpty(orderItemVoList.get(0).getTitle())) {
+                info.setTitle(orderItemVoList.get(0).getTitle());
+            }
+            if (StringUtils.isNotEmpty(orderItemVoList) && StringUtils.isNotEmpty(orderItemVoList.get(0).getOrderItemId())) {
+                info.setOrderItemId(orderItemVoList.get(0).getOrderItemId());
+            }
+            this.saveOrUpdate(info);
+        });
     }
 }

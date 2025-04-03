@@ -408,6 +408,82 @@ public class ApiServiceImpl implements IApiService {
         return data;
     }
 
+    @Override
+    public OrderResponse.Data getOrderInfoList(String dateStart, String dateEnd) {
+        String clientId = configService.selectConfigByKey("clientId");
+        String clientSecret = configService.selectConfigByKey("clientSecret");
+        String apiUrl = configService.selectConfigByKey("getOrderInfoListApi");
+        if (StringUtils.isEmpty(clientId)
+                || StringUtils.isEmpty(clientSecret)
+                || StringUtils.isEmpty(apiUrl)) {
+            throw new RuntimeException("请先配置clientId,clientSecret以及获取评论接口");
+        }
+        //获取token
+        String token = redisCache.getCacheObject("token");
+        if (StringUtils.isEmpty(token)) {
+            token = getToken();
+        }
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String nonce = String.valueOf(new Random().nextInt(100000));
+        String sign = null;
+        try {
+            sign = generateSign("/api/order/pageList.json", "post", token, clientId, timestamp, nonce, clientSecret);
+        } catch (Exception e) {
+            log.error("生成签名失败！！！", e);
+        }
+        Map<String, Object> queryParams = new HashMap<>();
+        queryParams.put("access_token", token);
+        queryParams.put("client_id", clientId);
+        queryParams.put("nonce", nonce);
+        queryParams.put("timestamp", timestamp);
+        queryParams.put("sign", sign);
+        Map<String, Object> bodyParams = new HashMap<>();
+        bodyParams.put("dateType", "purchase");
+        bodyParams.put("dateStart", dateStart);
+        bodyParams.put("dateEnd", dateEnd);
+        bodyParams.put("pageNo", "1");
+        bodyParams.put("pageSize", "200");
+        HashMap<String, String> headers = new HashMap<>();
+        headers.put("Content-Type", "application/json");
+
+        try {
+            String fullUrl = HttpUtil.urlWithForm(apiUrl, queryParams, null, true);
+            HttpResponse response = HttpRequest.post(fullUrl)
+                    .header("Content-Type", "application/json")
+                    .body(JSONUtil.toJsonStr(bodyParams))
+                    .timeout(5000)
+                    .execute();
+            //打印完整请求
+            String command = generateCurlCommand(apiUrl, queryParams, headers, JSONUtil.toJsonStr(bodyParams));
+            String responseBody = response.body();
+            System.err.println("296getCommodityDetail responseBody" + responseBody);
+            OrderResponse orderResponse = JSONObject.parseObject(responseBody, OrderResponse.class);
+            System.out.println("298getCommodityDetail orderResponse = " + orderResponse);
+            System.err.println("299getCommodityDetail response = " + response);
+            System.out.println(command);
+
+            if (orderResponse.getCode().equals("40001") || orderResponse.getMsg().equals("access_token 失效")) {
+                getToken();
+                throw new ServiceException("access_token 失效，正在重新获取token,请重新操作", 40001);
+            }
+            if (!orderResponse.getCode().equals("0")) {
+//            throw new RuntimeException("获取商品信息失败");
+//            log.error("获取商品信息失败");
+                return orderResponse.getData();
+            }
+            if (!response.isOk()) {
+//            throw new RuntimeException("获取商品信息失败");
+//            log.error("获取商品信息失败");
+                return orderResponse.getData();
+            }
+            return orderResponse.getData();
+        } catch (Exception e) {
+            System.err.println("请求异常: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("请求异常: " + e.getMessage());
+        }
+    }
+
     private String generateCurlCommand(String url, Map<String, Object> queryParams, Map<String, String> headers, String body) {
         StringBuilder curlCommand = new StringBuilder("curl -X POST ");
         // 1. 手动拼接 Query 参数（确保编码正确）

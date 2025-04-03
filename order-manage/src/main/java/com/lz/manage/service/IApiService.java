@@ -2,6 +2,7 @@ package com.lz.manage.service;
 
 import com.lz.manage.model.api.CommodityDetailResponse;
 import com.lz.manage.model.api.OrderInfoResponse;
+import com.lz.manage.model.api.OrderResponse;
 import com.lz.manage.model.api.ReviewResponse;
 import com.lz.manage.model.dto.storeInfo.StoreInfoResult;
 
@@ -65,4 +66,14 @@ public interface IApiService {
      * return: com.lz.manage.model.api.CommodityDetailResponse
      **/
     ReviewResponse.Data getReviewDetailList(String amazonOrderId);
+
+    /**
+     * description: 获取订单列表
+     * author: YY
+     * method: getOrderInfoList
+     * date: 2025/3/21 23:26
+     * param:
+     * return: com.lz.manage.model.api.OrderResponse
+     **/
+    OrderResponse.Data getOrderInfoList(String dateStart, String dateEnd);
 }

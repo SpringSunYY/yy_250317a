@@ -116,4 +116,6 @@ public interface IOrderInfoService extends IService<OrderInfo> {
      * return: int
      **/
     int externalAdd(OrderInfo orderInfo);
+
+    void autoGetOrderInfo();
 }

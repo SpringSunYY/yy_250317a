@@ -123,7 +123,7 @@ public class OrderInfoVo implements Serializable
 
     /** 创建人 */
     @Excel(name = "创建人")
-    private Long userId;
+    private String userName;
 
     /** 创建时间 */
     @JsonFormat(pattern = "yyyy-MM-dd")
