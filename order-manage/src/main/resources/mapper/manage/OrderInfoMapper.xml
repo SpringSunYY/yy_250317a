@@ -109,6 +109,7 @@
             </if>
             <if test="remark != null  and remark != ''">and remark = #{remark}</if>
         </where>
+        order by purchase_date desc
     </select>
 
     <select id="selectOrderInfoById" parameterType="Long" resultMap="OrderInfoResult">

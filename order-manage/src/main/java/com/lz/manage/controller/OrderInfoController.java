@@ -1,35 +1,26 @@
 package com.lz.manage.controller;
 
-import java.util.List;
-import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletResponse;
-
-import com.lz.common.exception.ServiceException;
-import com.lz.common.utils.DateUtils;
-import com.lz.common.utils.StringUtils;
-import com.lz.manage.model.dto.orderInfo.*;
-import org.springframework.security.access.prepost.PreAuthorize;
-
-import javax.annotation.Resource;
-
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.lz.common.annotation.Log;
 import com.lz.common.core.controller.BaseController;
 import com.lz.common.core.domain.AjaxResult;
+import com.lz.common.core.page.TableDataInfo;
 import com.lz.common.enums.BusinessType;
+import com.lz.common.exception.ServiceException;
+import com.lz.common.utils.DateUtils;
+import com.lz.common.utils.poi.ExcelUtil;
 import com.lz.manage.model.domain.OrderInfo;
+import com.lz.manage.model.dto.orderInfo.*;
 import com.lz.manage.model.vo.orderInfo.OrderInfoVo;
 import com.lz.manage.service.IOrderInfoService;
-import com.lz.common.utils.poi.ExcelUtil;
-import com.lz.common.core.page.TableDataInfo;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 订单Controller
@@ -105,7 +96,7 @@ public class OrderInfoController extends BaseController {
     @PostMapping("/external/query")
     public AjaxResult externalQuery(@RequestBody @Validated OrderQuery orderQuery) {
         OrderInfo orderInfo = OrderQuery.insertToObj(orderQuery);
-        return success(orderInfoService.externalQuery(orderInfo));
+        return success(orderInfoService.getOne(new LambdaQueryWrapper<>(OrderInfo.class).eq(OrderInfo::getAmazonOrderId, orderInfo.getAmazonOrderId())));
     }
 
     /**

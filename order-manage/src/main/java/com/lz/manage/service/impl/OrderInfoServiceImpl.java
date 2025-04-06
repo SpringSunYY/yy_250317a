@@ -347,15 +347,24 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
     public int externalAdd(OrderInfo orderInfo) {
         //根据Amazon订单号查询订单信息
         OrderInfo one = this.getOne(new LambdaQueryWrapper<>(OrderInfo.class).eq(OrderInfo::getAmazonOrderId, orderInfo.getAmazonOrderId()));
-        if (StringUtils.isNotNull(one)) {
-            throw new ServiceException("订单信息已经评价，无需再评价", NOT_MODIFIED);
+        if (StringUtils.isNull(one)) {
+            throw new ServiceException("订单信息不存在," + orderInfo.getAmazonOrderId(), NO_CONTENT);
         }
-        StoreInfo storeInfo = storeInfoService.selectStoreInfoByStoreId(orderInfo.getStoreId());
-        if (StringUtils.isNull(storeInfo)) {
-            throw new ServiceException("店铺信息不存在", NO_CONTENT);
-        }
-        orderInfo.setUserName("用户创建");
-        return this.insertOrderInfo(orderInfo);
+        Long id = one.getId();
+        BeanUtils.copyProperties(orderInfo, one);
+        //异步执行获取订单信息
+        CompletableFuture.runAsync(() -> {
+            OrderInfoApiQuery orderInfoApiQuery = new OrderInfoApiQuery();
+            orderInfoApiQuery.setAmazonOrderId(one.getAmazonOrderId());
+            orderInfoApiQuery.setSellerOrderId(one.getSellerOrderId());
+            orderInfoApiQuery.setStoreId(one.getStoreId());
+            OrderInfo apiOrder = this.getOrderInfo(one, orderInfoApiQuery);
+            apiOrder.setId(id);
+            this.updateById(apiOrder);
+        });
+        one.setId(id);
+        one.setUpdateTime(new Date());
+        return this.updateById(one) ? 1 : 0;
     }
 
     private OrderInfo getOrderInfo(OrderInfo orderInfo, OrderInfoApiQuery orderInfoApiQuery) {
@@ -375,7 +384,6 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         orderInfo.setOrderItemId(orderInfoByApi.getOrderItemId());
         orderInfo.setGoodsLink(orderInfoByApi.getGoodsLink());
         orderInfo.setSellerOrderId(orderInfoByApi.getSellerOrderId());
-        orderInfo.setUserName("用户创建");
         return orderInfo;
     }
 
@@ -403,9 +411,9 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
             info.setPurchaseDate(orderInfo.getPurchaseDate());
             info.setAmazonOrderId(orderInfo.getAmazonOrderId());
             info.setStoreId(orderInfo.getShopId());
-            info.setEvaluateContent(orderInfo.getAmazonOrderId());
+//            info.setEvaluateContent(orderInfo.getComment());
             info.setMarketplaceId(orderInfo.getMarketplaceId());
-            info.setComment(orderInfo.getComment());
+//            info.setComment(orderInfo.getComment());
             info.setBuyerEmail(orderInfo.getBuyerEmail());
             info.setBuyerName(orderInfo.getBuyerName());
             List<OrderResponse.Row.OrderItem> orderItemVoList = orderInfo.getOrderItemVoList();
