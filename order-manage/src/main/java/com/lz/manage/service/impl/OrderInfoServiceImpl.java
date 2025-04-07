@@ -261,7 +261,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
             CommodityDetailResponse.Data commodityDetail = commodityDetailFuture.get();
             if (StringUtils.isNotNull(commodityDetail) && StringUtils.isNotEmpty(commodityDetail.getSourceUrls())) {
                 orderInfo.setGoodsLink(commodityDetail.getSourceUrls());
-                orderInfo.setTitle(commodityDetail.getName());
+//                orderInfo.setTitle(commodityDetail.getName());
             }
 
             // 6. 获取并处理 `reviewData`
@@ -424,7 +424,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
                 info.setAsin(orderItemVoList.get(0).getAsin());
             }
             if (StringUtils.isNotEmpty(orderItemVoList) && StringUtils.isNotEmpty(orderItemVoList.get(0).getTitle())) {
-                info.setTitle(orderItemVoList.get(0).getTitle());
+                info.setTitle(orderItemVoList.get(0).getCommoditySku());
             }
             if (StringUtils.isNotEmpty(orderItemVoList) && StringUtils.isNotEmpty(orderItemVoList.get(0).getOrderItemId())) {
                 info.setOrderItemId(orderItemVoList.get(0).getOrderItemId());

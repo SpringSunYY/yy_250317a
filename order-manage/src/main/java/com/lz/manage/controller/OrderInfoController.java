@@ -8,6 +8,7 @@ import com.lz.common.core.page.TableDataInfo;
 import com.lz.common.enums.BusinessType;
 import com.lz.common.exception.ServiceException;
 import com.lz.common.utils.DateUtils;
+import com.lz.common.utils.StringUtils;
 import com.lz.common.utils.poi.ExcelUtil;
 import com.lz.manage.model.domain.OrderInfo;
 import com.lz.manage.model.dto.orderInfo.*;
@@ -21,6 +22,8 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.lz.common.constant.HttpStatus.NO_CONTENT;
 
 /**
  * 订单Controller
@@ -96,7 +99,11 @@ public class OrderInfoController extends BaseController {
     @PostMapping("/external/query")
     public AjaxResult externalQuery(@RequestBody @Validated OrderQuery orderQuery) {
         OrderInfo orderInfo = OrderQuery.insertToObj(orderQuery);
-        return success(orderInfoService.getOne(new LambdaQueryWrapper<>(OrderInfo.class).eq(OrderInfo::getAmazonOrderId, orderInfo.getAmazonOrderId())));
+        OrderInfo one = orderInfoService.getOne(new LambdaQueryWrapper<>(OrderInfo.class).eq(OrderInfo::getAmazonOrderId, orderInfo.getAmazonOrderId()));
+        if (StringUtils.isNull(one)) {
+            throw new ServiceException("订单不存在", NO_CONTENT);
+        }
+        return success(one);
     }
 
     /**

@@ -310,7 +310,7 @@ export default {
       // 查询参数
       queryParams: {
         pageNum: 1,
-        pageSize: 20,
+        pageSize: 10,
         id: null,
         storeId: null,
         name: null,

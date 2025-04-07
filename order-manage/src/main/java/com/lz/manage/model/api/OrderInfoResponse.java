@@ -83,5 +83,7 @@ public class OrderInfoResponse implements Serializable {
         private String asin;
         private String orderItemId;
         private String asinUrl;
+        //订单中文标题
+        private String commoditySku;
     }
 }

@@ -233,7 +233,7 @@ public class ApiServiceImpl implements IApiService {
         if (StringUtils.isNotEmpty(orderItemVoList)) {
             OrderInfoResponse.OrderItemVoList orderItem = orderItemVoList.get(0);
             data.setAsin(orderItem.getAsin());
-            data.setTitle(orderItem.getTitle());
+            data.setTitle(orderItem.getCommoditySku());
             data.setOrderItemId(orderItem.getOrderItemId());
             data.setGoodsLink(orderItem.getAsinUrl());
         }
@@ -456,10 +456,10 @@ public class ApiServiceImpl implements IApiService {
             //打印完整请求
             String command = generateCurlCommand(apiUrl, queryParams, headers, JSONUtil.toJsonStr(bodyParams));
             String responseBody = response.body();
-            System.err.println("296getCommodityDetail responseBody" + responseBody);
+//            System.err.println("296getCommodityDetail responseBody" + responseBody);
             OrderResponse orderResponse = JSONObject.parseObject(responseBody, OrderResponse.class);
-            System.out.println("298getCommodityDetail orderResponse = " + orderResponse);
-            System.err.println("299getCommodityDetail response = " + response);
+//            System.out.println("298getCommodityDetail orderResponse = " + orderResponse);
+//            System.err.println("299getCommodityDetail response = " + response);
             System.out.println(command);
 
             if (orderResponse.getCode().equals("40001") || orderResponse.getMsg().equals("access_token 失效")) {
@@ -479,7 +479,7 @@ public class ApiServiceImpl implements IApiService {
             return orderResponse.getData();
         } catch (Exception e) {
             System.err.println("请求异常: " + e.getMessage());
-            e.printStackTrace();
+//            e.printStackTrace();
             throw new RuntimeException("请求异常: " + e.getMessage());
         }
     }
