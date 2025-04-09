@@ -30,7 +30,6 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
-import static com.lz.common.constant.HttpStatus.NOT_MODIFIED;
 import static com.lz.common.constant.HttpStatus.NO_CONTENT;
 
 /**
@@ -261,7 +260,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
             CommodityDetailResponse.Data commodityDetail = commodityDetailFuture.get();
             if (StringUtils.isNotNull(commodityDetail) && StringUtils.isNotEmpty(commodityDetail.getSourceUrls())) {
                 orderInfo.setGoodsLink(commodityDetail.getSourceUrls());
-//                orderInfo.setTitle(commodityDetail.getName());
+                orderInfo.setTitle(commodityDetail.getDeclareNameCh());
             }
 
             // 6. 获取并处理 `reviewData`
@@ -388,26 +387,26 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
     }
 
     @Override
-    public void autoGetOrderInfo() {
-        //现在的三小时前
-        String dateStart = DateUtil.format(DateUtil.offsetHour(DateUtil.date(), -3), "yyyy-MM-dd HH:mm:ss");
+    public void autoGetOrderInfo(int total, int pageNo, int hours) {
+        //减去传来的小时
+        int queryHours = -hours;
+        String dateStart = DateUtil.format(DateUtil.offsetHour(DateUtil.date(), queryHours), "yyyy-MM-dd HH:mm:ss");
         String dateEnd = DateUtil.format(DateUtil.date(), "yyyy-MM-dd HH:mm:ss");
-        OrderResponse.Data orderInfoList = apiService.getOrderInfoList(dateStart, dateEnd);
-        boolean b = StringUtils.isNotNull(orderInfoList) && StringUtils.isNotEmpty(orderInfoList.getRows());
+        OrderResponse.Data orderInfoResult = apiService.getOrderInfoList(dateStart, dateEnd, pageNo);
+        boolean b = StringUtils.isNotNull(orderInfoResult) && StringUtils.isNotEmpty(orderInfoResult.getRows());
         if (!b) {
             return;
         }
-        orderInfoList.getRows().forEach(orderInfo -> {
+//        System.out.println("orderInfoResult = " + orderInfoResult);
+        orderInfoResult.getRows().forEach(orderInfo -> {
             OrderInfo info = new OrderInfo();
             //先查询是否有此订单
             OrderInfo one = this.getOne(new LambdaQueryWrapper<>(OrderInfo.class).eq(OrderInfo::getAmazonOrderId, orderInfo.getAmazonOrderId()));
             if (StringUtils.isNotNull(one)) {
-                BeanUtils.copyProperties(orderInfo, info);
-            } else {
-                //没有
-                info.setUserName("自动获取");
-                info.setCreateTime(new Date());
+                BeanUtils.copyProperties(one, info);
             }
+            info.setCreateTime(new Date());
+            info.setUserName("自动获取");
             info.setPurchaseDate(orderInfo.getPurchaseDate());
             info.setAmazonOrderId(orderInfo.getAmazonOrderId());
             info.setStoreId(orderInfo.getShopId());
@@ -423,13 +422,37 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
             if (StringUtils.isNotEmpty(orderItemVoList) && StringUtils.isNotEmpty(orderItemVoList.get(0).getAsin())) {
                 info.setAsin(orderItemVoList.get(0).getAsin());
             }
-            if (StringUtils.isNotEmpty(orderItemVoList) && StringUtils.isNotEmpty(orderItemVoList.get(0).getTitle())) {
-                info.setTitle(orderItemVoList.get(0).getCommoditySku());
-            }
             if (StringUtils.isNotEmpty(orderItemVoList) && StringUtils.isNotEmpty(orderItemVoList.get(0).getOrderItemId())) {
-                info.setOrderItemId(orderItemVoList.get(0).getOrderItemId());
+                info.setOrderItemId(orderItemVoList.get(0).getCommoditySku());
+            }
+            if (StringUtils.isNotEmpty(info.getOrderItemId())) {
+                try {
+                    Thread.sleep(1000L);
+                    CommodityDetailResponse.Data commodityDetail = apiService.getCommodityDetail(info.getOrderItemId());
+                    if (StringUtils.isNotNull(commodityDetail) && StringUtils.isNotEmpty(commodityDetail.getDeclareNameCh())) {
+                        info.setTitle(commodityDetail.getDeclareNameCh());
+                    }
+                    OrderInfoApiQuery orderInfoApiQuery = new OrderInfoApiQuery();
+                    orderInfoApiQuery.setAmazonOrderId(info.getAmazonOrderId());
+                    orderInfoApiQuery.setSellerOrderId(info.getSellerOrderId());
+                    orderInfoApiQuery.setStoreId(info.getStoreId());
+                    OrderInfo orderInfoByApi = this.getOrderInfoByApi(orderInfoApiQuery);
+                    if (StringUtils.isNotNull(orderInfoByApi)) {
+                        info.setEvaluateContent(orderInfoByApi.getEvaluateContent());
+                        info.setEvaluateTime(orderInfoByApi.getEvaluateTime());
+                        info.setEvaluateLevel(orderInfoByApi.getEvaluateLevel());
+                        info.setComment(orderInfoByApi.getComment());
+                        info.setTitle(orderInfoByApi.getTitle());
+                    }
+                } catch (Exception e) {
+                    log.error("自动获取订单信息失败", e);
+                }
             }
             this.saveOrUpdate(info);
         });
+        total += orderInfoResult.getRows().size();
+        if (orderInfoResult.getTotalSize() > total) {
+            autoGetOrderInfo(total, pageNo + 1, hours);
+        }
     }
 }

@@ -18,6 +18,7 @@ public class OrderResponse implements Serializable {
     public static class Data {
         private String pageNo;
         private String pageSize;
+        private int totalSize;
         private List<Row> rows;
     }
 

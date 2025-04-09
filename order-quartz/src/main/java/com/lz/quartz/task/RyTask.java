@@ -37,8 +37,8 @@ public class RyTask {
         System.out.println("执行无参方法");
     }
 
-    public void getOrder() {
-        orderInfoService.autoGetOrderInfo();
+    public void getOrder(Integer hours) {
+        orderInfoService.autoGetOrderInfo(0, 1, hours);
         System.out.println("执行同步订单方法");
     }
 }

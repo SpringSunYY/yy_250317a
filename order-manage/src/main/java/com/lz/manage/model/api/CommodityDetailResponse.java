@@ -17,10 +17,12 @@ public class CommodityDetailResponse implements Serializable {
     private String msg;
     private String requestId;
     private Data data;
+
     @lombok.Data
     public static class Data {
         private String id;
         private String sourceUrls;
         private String name;
+        private String declareNameCh;
     }
 }

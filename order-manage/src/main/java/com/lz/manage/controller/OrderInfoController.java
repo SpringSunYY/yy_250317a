@@ -123,7 +123,11 @@ public class OrderInfoController extends BaseController {
         } catch (NumberFormatException e) {
             throw new ServiceException("时间搓转换异常");
         }
-        return success(orderInfoService.externalAdd(orderInfo));
+        int data = orderInfoService.externalAdd(orderInfo);
+        if (data != 1) {
+            error("操作失败");
+        }
+        return success(orderInfo);
     }
 
     /**

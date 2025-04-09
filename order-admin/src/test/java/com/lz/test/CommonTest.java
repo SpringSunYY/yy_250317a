@@ -30,7 +30,7 @@ public class CommonTest {
 
     private static final String CLIENT_ID = "367971";
     private static final String CLIENT_SECRET = "df2bac03-1006-4974-89f1-8163162d4910";
-    private static final String ACCESS_TOKEN = "9954ff0e-d819-45ee-819f-3db3d3bc7b89";
+    private static final String ACCESS_TOKEN = "9bd903aa-48ea-469d-8a88-56a79f7b4f28";
 
     @Test
     public void test() {
@@ -377,12 +377,23 @@ public class CommonTest {
         Map<String, Object> bodyParams = new HashMap<>();
         bodyParams.put("dateType", "purchase");
         //现在的三小时前
-        String format = DateUtil.format(DateUtil.offsetHour(DateUtil.date(), -3), "yyyy-MM-dd HH:mm:ss");
+        String format = DateUtil.format(DateUtil.offsetDay(DateUtil.date(), -1), "yyyy-MM-dd HH:mm:ss");
         bodyParams.put("dateStart", format);
         System.out.println("format = " + format);
         String format1 = DateUtil.format(DateUtil.date(), "yyyy-MM-dd HH:mm:ss");
         System.out.println("format1 = " + format1);
         bodyParams.put("dateEnd", format1);
+//        ArrayList<Object> value = new ArrayList<>();
+//        value.add("284504");
+//        value.add("284500");
+//        value.add("284501");
+//        value.add("284502");
+//        value.add("284503");
+//        value.add("306883");
+//        value.add("306884");
+//        value.add("306885");
+//        bodyParams.put("shopIdList", value);
+//        bodyParams.put("fulfillmentOrder", "1");
         bodyParams.put("pageNo", "1");
         bodyParams.put("pageSize", "200");
         HashMap<String, String> headers = new HashMap<>();

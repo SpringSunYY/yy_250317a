@@ -45,7 +45,7 @@ public interface IApiService {
      * param:
      * return: com.lz.manage.model.api.OrderInfoResponse
      **/
-    OrderInfoResponse.Data getOrderInfo(String shopId, String amazonOrderId,String sellerOrderId);
+    OrderInfoResponse.Data getOrderInfo(String shopId, String amazonOrderId, String sellerOrderId);
 
     /**
      * description: 获取商品详情
@@ -75,5 +75,5 @@ public interface IApiService {
      * param:
      * return: com.lz.manage.model.api.OrderResponse
      **/
-    OrderResponse.Data getOrderInfoList(String dateStart, String dateEnd);
+    OrderResponse.Data getOrderInfoList(String dateStart, String dateEnd, int pageNo);
 }

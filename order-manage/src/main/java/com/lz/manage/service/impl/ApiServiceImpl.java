@@ -234,7 +234,7 @@ public class ApiServiceImpl implements IApiService {
             OrderInfoResponse.OrderItemVoList orderItem = orderItemVoList.get(0);
             data.setAsin(orderItem.getAsin());
             data.setTitle(orderItem.getCommoditySku());
-            data.setOrderItemId(orderItem.getOrderItemId());
+            data.setOrderItemId(orderItem.getCommoditySku());
             data.setGoodsLink(orderItem.getAsinUrl());
         }
 //        System.out.println("238getOrderInfo orderItemVoList = " + orderItemVoList);
@@ -409,7 +409,7 @@ public class ApiServiceImpl implements IApiService {
     }
 
     @Override
-    public OrderResponse.Data getOrderInfoList(String dateStart, String dateEnd) {
+    public OrderResponse.Data getOrderInfoList(String dateStart, String dateEnd, int pageNo) {
         String clientId = configService.selectConfigByKey("clientId");
         String clientSecret = configService.selectConfigByKey("clientSecret");
         String apiUrl = configService.selectConfigByKey("getOrderInfoListApi");
@@ -441,7 +441,7 @@ public class ApiServiceImpl implements IApiService {
         bodyParams.put("dateType", "purchase");
         bodyParams.put("dateStart", dateStart);
         bodyParams.put("dateEnd", dateEnd);
-        bodyParams.put("pageNo", "1");
+        bodyParams.put("pageNo", pageNo);
         bodyParams.put("pageSize", "200");
         HashMap<String, String> headers = new HashMap<>();
         headers.put("Content-Type", "application/json");
@@ -456,11 +456,11 @@ public class ApiServiceImpl implements IApiService {
             //打印完整请求
             String command = generateCurlCommand(apiUrl, queryParams, headers, JSONUtil.toJsonStr(bodyParams));
             String responseBody = response.body();
-//            System.err.println("296getCommodityDetail responseBody" + responseBody);
+//            System.err.println("getOrderInfoList responseBody" + responseBody);
             OrderResponse orderResponse = JSONObject.parseObject(responseBody, OrderResponse.class);
 //            System.out.println("298getCommodityDetail orderResponse = " + orderResponse);
-//            System.err.println("299getCommodityDetail response = " + response);
-            System.out.println(command);
+//            System.err.println("getOrderInfoList response = " + response);
+//            System.out.println(command);
 
             if (orderResponse.getCode().equals("40001") || orderResponse.getMsg().equals("access_token 失效")) {
                 getToken();
@@ -468,13 +468,14 @@ public class ApiServiceImpl implements IApiService {
             }
             if (!orderResponse.getCode().equals("0")) {
 //            throw new RuntimeException("获取商品信息失败");
-//            log.error("获取商品信息失败");
-                return orderResponse.getData();
+                log.error("获取商品信息失败");
+                return new OrderResponse.Data();
+
             }
             if (!response.isOk()) {
 //            throw new RuntimeException("获取商品信息失败");
-//            log.error("获取商品信息失败");
-                return orderResponse.getData();
+                log.error("获取商品信息失败");
+                return new OrderResponse.Data();
             }
             return orderResponse.getData();
         } catch (Exception e) {
