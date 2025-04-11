@@ -85,7 +85,8 @@
                 #{amazonOrderId}, '%')
             </if>
             <if test="params.beginPurchaseDate != null and params.beginPurchaseDate != '' and params.endPurchaseDate != null and params.endPurchaseDate != ''">
-                and DATE_FORMAT(purchase_date, '%Y-%m-%d') between #{params.beginPurchaseDate} and #{params.endPurchaseDate}
+                and DATE_FORMAT(purchase_date, '%Y-%m-%d') between #{params.beginPurchaseDate} and
+                #{params.endPurchaseDate}
             </if>
             <if test="orderItemId != null  and orderItemId != ''">and order_item_id like concat('%', #{orderItemId},
                 '%')
@@ -96,7 +97,8 @@
                 and DATE_FORMAT(scan_time, '%Y-%m-%d') between #{params.beginScanTime} and #{params.endScanTime}
             </if>
             <if test="buyerName != null  and buyerName != ''">and buyer_name like concat('%', #{buyerName}, '%')</if>
-            <if test="buyerEmail != null  and buyerEmail != ''">and buyer_email = #{buyerEmail}</if>
+            <if test="buyerEmail != null  and buyerEmail != ''">and buyer_email like concat('%', #{buyerEmail}, '%')
+            </if>
             <if test="begEvaluateStatus != null  and begEvaluateStatus != ''">and beg_evaluate_status =
                 #{begEvaluateStatus}
             </if>
